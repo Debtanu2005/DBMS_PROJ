@@ -1,0 +1,12 @@
+pydantic
+python-dotenv
+from_root
+PyYAML
+boto3
+mypy-boto3-s3
+botocore
+fastapi
+python-multipart
+psycopg2-binary
+uvicorn
+-e .
