@@ -2,6 +2,8 @@ import jwt
 import datetime
 import os
 from dotenv import load_dotenv
+from src.logger import logging
+from src.exception import MyException
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -42,10 +44,12 @@ def verify_token(token: str)->dict | None:
         return payload
 
     except jwt.ExpiredSignatureError:
+        logging.warning("Token expired")
         print("Token expired")
         return None
 
     except jwt.InvalidTokenError:
+        logging.error("Invalid token")
         print("Invalid token")
         return None
 
@@ -57,5 +61,6 @@ def decode_token(token: str)->dict | None:
     try:
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except Exception as e:
+        logging.error(f"Error decoding token: {e}")
         print("Error decoding token:", e)
         return None
