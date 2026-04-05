@@ -1,4 +1,19 @@
 from dataclasses import dataclass
+from typing import Optional
+
+
+@dataclass
+class student:
+    first_name: str
+    last_name: str
+    phone: str
+    dob: str
+    university_id: int
+    major: str
+    status: str
+    year_of_student: int
+    role: str
+    student_id: Optional[int] = None 
 
 @dataclass
 class Cart_Item:
