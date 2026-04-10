@@ -17,11 +17,19 @@ class BookSearch:
         
         book_ids = [row[0] for row in results]
 
+        books = []
+        for row in results:
+            books.append({
+                "id": row[0],
+                "title": row[1],
+                "author": row[2],   # publisher used as author
+                "stock": row[3],
+                "rating": row[4]
+            })
+
         return {
-            "book_ids": book_ids,
-            "results": results
+            "results": books
         }
-    
 
     def __del__(self):
         disconnect_db()

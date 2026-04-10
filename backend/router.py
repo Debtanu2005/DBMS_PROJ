@@ -57,12 +57,14 @@ async def login_user(data: LoginRequest): # Change 'dict' to 'LoginRequest'
         raise HTTPException(status_code=401, detail=str(e)) # CHANGED: 401 for Login fail
 
 # ================= SEARCH BOOKS =================
+
 @router.get("/search_books")
-async def search_books(author: str = None, name: str = None):
+async def search_books(q: str = None, author: str = None, name: str = None):
     book_search = BookSearch()
     try:
-        query = name or author
+        query = q or name or author   # ✅ FIX
         books = book_search.search(query=query)
+        print("SEARCH RESULT:", books)
         return {"books": books}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
