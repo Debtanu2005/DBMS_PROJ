@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add Book</title>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/pages.css" />
+  <link rel="stylesheet" href="css/addbook.css" />
+  <link rel="stylesheet" href="css/search.css" />
+</head>
+
+<body>
+
+  <!-- 🔥 NAVBAR -->
+  <nav class="navbar">
+    <a class="nav-logo" href="index.html">Fo<span>lio</span></a>
+
+    <div class="nav-links">
+      <a href="index.html">Browse</a>
+      <a href="cart.html">Cart</a>
+      <a href="orders.html">Orders</a>
+
+      <!-- ✅ ADMIN ONLY -->
+      <a href="addbook.html" id="addBookLink" style="display:none;">Add Book</a>
+    </div>
+  </nav>
+
+  <!-- 📦 MAIN CONTAINER -->
+  <div class="container">
+    <h2>Add New Book</h2>
+
+    <!-- 📋 FORM -->
+    <form id="add-book-form">
+
+      <input id="title" placeholder="Title" required />
+      <input id="isbn" placeholder="ISBN" required />
+      <input id="publisher" placeholder="Publisher" required />
+
+      <input id="price" type="number" placeholder="Price" required />
+      <input id="quantity" type="number" placeholder="Quantity" required />
+
+      <input id="book_type" placeholder="Book Type" />
+      <input id="purchase_option" placeholder="Purchase Option" />
+      <input id="format" placeholder="Format" />
+      <input id="language" placeholder="Language" />
+
+      <input id="edition" type="number" placeholder="Edition" />
+      <input id="category" placeholder="Category" />
+      <input id="course_id" type="number" placeholder="Course ID" />
+      <input id="type" placeholder="Type" />
+
+      <button type="submit">Add Book</button>
+    </form>
+
+    <!-- 📢 MESSAGE -->
+    <div id="message"></div>
+  </div>
+
+  <!-- 🔗 SCRIPTS (VERY IMPORTANT ORDER) -->
+
+  <!-- Navbar logic -->
+  <script src="./js/navbar.js"></script>
+
+  <!-- Add book logic -->
+  <script src="./js/addbook.js"></script>
+  <script src="./js/api.js"></script>
+  <script  src="./js/search.js"></script>
+
+</body>
+</html>

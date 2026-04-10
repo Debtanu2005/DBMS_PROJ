@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Depends, HTTPException, status
 from authentication.register import RegisterManager
 from authentication.login import LoginManager
-from src.artifacts.entities import student, order_desc  # FIXED: Combined imports
+from src.artifacts.entities import book_new, student, order_desc  # FIXED: Combined imports
 from src.search_books.by_author_or_name import BookSearch
 from src.cart.order import OrderManager
 from src.cart.add_to_cart import CartManager
@@ -9,6 +9,7 @@ from authentication.jwt import verify_token
 from src.cart.view_cart import CartView
 from src.cart.view_orders import ViewOrders
 from src.base_model import LoginRequest
+from src.add_book.add import BookADD
 
 router = APIRouter()
 
@@ -52,7 +53,8 @@ async def login_user(data: LoginRequest): # Change 'dict' to 'LoginRequest'
     try:
         # data is now an object, access properties with dot notation
         token = login_manager.login(data.email, data.password)
-        return {"access_token": token}
+        print("LOGIN TOKEN:", token)
+        return {"data": token}
     except Exception as e:
         raise HTTPException(status_code=401, detail=str(e)) # CHANGED: 401 for Login fail
 
@@ -64,7 +66,7 @@ async def search_books(q: str = None, author: str = None, name: str = None):
     try:
         query = q or name or author   # ✅ FIX
         books = book_search.search(query=query)
-        print("SEARCH RESULT:", books)
+        # print("SEARCH RESULT:", books)
         return {"books": books}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -119,3 +121,24 @@ async def view_orders_endpoint(user_id: int = Depends(get_current_user)):
         return {"orders": orders}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+# ================= ADD BOOK (ADMIN) =================
+@router.post("/add_book")
+async def add_book_endpoint(
+    book_info: dict,
+    user=Depends(get_current_user)   # get full user, not just id
+):
+    try:
+        # ADMIN CHECK
+        if user.role != "admin":
+            raise HTTPException(status_code=403, detail="Admin only")
+
+        book_add_service = BookADD()
+        book_data = book_new(**book_info)
+
+        new_book_id = book_add_service.add_book(user.id, book_data)
+
+        return {"book_id": new_book_id}
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

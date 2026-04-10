@@ -1,0 +1,89 @@
+/* 🌿 PAGE */
+body {
+  background: var(--paper);
+  font-family: var(--font-serif);
+}
+
+/* 📦 CONTAINER */
+.container {
+  max-width: 900px;
+  margin: 60px auto;
+  padding: 40px;
+
+  background: var(--cream);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+/* 📝 TITLE */
+h2 {
+  font-size: 2.5rem;
+  font-weight: 300;
+  margin-bottom: 30px;
+}
+
+/* 📋 FORM GRID */
+form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+/* ✏️ INPUTS */
+input {
+  width: 100%;
+  padding: 14px;
+  font-size: 1rem;
+
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-bottom: 1px solid var(--ink);
+
+  font-family: var(--font-serif);
+  transition: all 0.2s ease;
+}
+
+/* 🔥 FOCUS */
+input:focus {
+  outline: none;
+  border-color: var(--rust);
+  background: var(--cream);
+}
+
+/* ➕ FULL WIDTH FIELDS */
+.full {
+  grid-column: span 2;
+}
+
+/* 🚀 BUTTON */
+button {
+  grid-column: span 2;
+
+  padding: 14px;
+  margin-top: 10px;
+
+  background: var(--ink);
+  color: var(--paper);
+
+  border: none;
+  font-family: var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: var(--rust);
+}
+
+/* 📢 MESSAGE */
+#message {
+  grid-column: span 2;
+  text-align: center;
+  margin-top: 10px;
+  font-family: var(--font-mono);
+}

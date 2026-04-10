@@ -60,9 +60,11 @@ class book_new:
     publisher: str 
     price: int
     quantity: int
-    type: str
+    book_type: str
     purchase_option: str 
     format: str
     language: str
     edition : int
     category: str
+    course_id: int
+    type: str

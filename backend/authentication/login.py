@@ -42,7 +42,8 @@ class LoginManager:
             logging.info(f"User {email} logged in successfully")
             return {"access_token": access_token,
                     "user_id": user_id,
-                    "email": email}
+                    "email": email,
+                    "role": role}
 
         except Exception as e:
             logging.error(f"Login error: {str(e)}")

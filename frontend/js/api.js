@@ -15,6 +15,7 @@
 // Change to 'http://127.0.0.1:8000' only when bypassing the proxy directly.
 const BASE_URL = '/api';
 
+
 /* ── TOKEN MANAGEMENT ───────────────────────────────────────── */
 const Auth = {
   getToken  : ()      => localStorage.getItem('folio_token'),
@@ -68,15 +69,31 @@ async function apiRegister(email, password, studentInfo = {}) {
  */
 async function apiLogin(email, password) {
   const res = await fetch(`${BASE_URL}/login`, {
-    method : 'POST',
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body   : JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password }),
   });
-  const data = await handleResponse(res);
-  if (data.access_token) Auth.setToken(data.access_token);
-  return data;
-}
 
+  // ✅ parse response
+  const data = await res.json();
+
+  // ❌ handle error
+  if (!res.ok) {
+    throw new Error(data.detail || "Login failed");
+  }
+
+  // ✅ extract actual user data
+  const user = data.data;
+
+  // ✅ store correctly
+  localStorage.setItem("folio_token", user.access_token);
+  localStorage.setItem("role", user.role);
+
+  if (user.access_token) {
+    Auth.setToken(user.access_token);
+  }
+  return user;
+}
 /* ── SEARCH ENDPOINT ────────────────────────────────────────── */
 
 /**
@@ -273,6 +290,26 @@ function showToast(msg, type = 'ok') {
   el.className   = `toast show ${type}`;
   clearTimeout(_toastTimer);
   _toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// / ------------------Add book-------------/
+async function apiAddBook(bookData) {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch("http://localhost:8000/add_book", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`   // 🔥 REQUIRED
+    },
+    body: JSON.stringify(bookData)
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to add book");
+  }
+
+  return await res.json();
 }
 
 /**

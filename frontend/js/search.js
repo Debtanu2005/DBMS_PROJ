@@ -102,21 +102,32 @@ async function doSearch() {
   setResultsInfo('Searching…');
 
   try {
-    const books = await apiSearchBooks(query, state.type);
-
-    console.log("BOOKS AFTER API:", books); // 🔥 ADD THIS
-
+    const books    = await apiSearchBooks(query, state.type);
     state.books    = books;
     state.filtered = books;
-
-    console.log("STATE FILTERED:", state.filtered); // 🔥 ADD THIS
-
-    sortBooks();
-
+    sortBooks();   // apply current sort if one is selected
   } catch (err) {
-    console.error(err);
+    // Only fall back to mock data when the backend is truly unreachable (network error).
+    // Do NOT mask real HTTP errors like 401/422 — show them instead.
+    const isNetworkError = err.message.includes('Failed to fetch') ||
+                           err.message.includes('NetworkError') ||
+                           err.message.includes('502');
+    if (isNetworkError) {
+      console.warn('Backend unreachable — showing mock data:', err.message);
+      const books    = getMockBooks(query, state.type);
+      state.books    = books;
+      state.filtered = books;
+      renderBooks(state.filtered);
+    } else {
+      // Real backend error — show it so we can debug
+      state.books    = [];
+      state.filtered = [];
+      setResultsInfo(`Error: ${escHtml(err.message)}`);
+      renderBooks([]);
+    }
   }
 }
+
 /* ── RENDER BOOKS ───────────────────────────────────────────── */
 function renderBooks(books) {
   const grid = document.getElementById('books-grid');
@@ -127,7 +138,6 @@ function renderBooks(books) {
 
   // Results info bar
   const count = books.length;
-  console.log("RENDER INPUT:", books);
   setResultsInfo(
     count === 0
       ? 'No results'
@@ -247,9 +257,37 @@ if (_urlQ) {
   state.query = _urlQ;
 }
 
-// Run initial search when DOM is ready
-window.addEventListener('DOMContentLoaded', () => doSearch());
 
 // Enter key triggers search
 document.getElementById('search-input')
   ?.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+/* ================================================================*/
+document.addEventListener("DOMContentLoaded", () => {
+
+  // 🔍 Run search on page load
+  doSearch();
+
+  // ⌨️ Enter key triggers search
+  const input = document.getElementById('search-input');
+  if (input) {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        doSearch();
+      }
+    });
+  }
+
+  // 🔑 Show admin link
+  const token = localStorage.getItem("folio_token");
+  const role = localStorage.getItem("role");
+  const link = document.getElementById("addBookLink");
+
+  console.log("ROLE:", role);
+  console.log("LINK:", link);
+
+  if (role === "admin" && link) {
+    link.style.display = "inline"; // better than block for navbar
+  }
+
+});

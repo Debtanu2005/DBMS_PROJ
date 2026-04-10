@@ -122,6 +122,7 @@
     <li><a href="search.html">Browse</a></li>
     <li><a href="cart.html">Cart</a></li>
     <li><a href="orders.html" class="active">Orders</a></li>
+    <li><a href="addbook.html">Add Book</a></li>
   </ul>
   <a href="login.html" class="nav-auth" id="nav-auth-btn">Sign In</a>
 </nav>
@@ -299,13 +300,13 @@
       </div>`).join('');
   }
 
-  function getMockOrders() {
-    return [
-      { order_id: 1001, status: 'delivered', total: 748, date: '2026-03-15T10:30:00', address: '42 MG Road, Bhubaneswar, Odisha 751001', items: [{ title: 'The Midnight Library', author: 'Matt Haig', quantity: 1, price: 349 }, { title: 'Atomic Habits', author: 'James Clear', quantity: 1, price: 399 }] },
-      { order_id: 1002, status: 'shipped', total: 499, date: '2026-04-01T14:00:00', address: '42 MG Road, Bhubaneswar, Odisha 751001', items: [{ title: 'Sapiens', author: 'Yuval Noah Harari', quantity: 1, price: 499 }] },
-      { order_id: 1003, status: 'processing', total: 249, date: '2026-04-07T09:00:00', address: '42 MG Road, Bhubaneswar, Odisha 751001', items: [{ title: '1984', author: 'George Orwell', quantity: 1, price: 249 }] },
-    ];
-  }
+  // function getMockOrders() {
+  //   return [
+  //     { order_id: 1001, status: 'delivered', total: 748, date: '2026-03-15T10:30:00', address: '42 MG Road, Bhubaneswar, Odisha 751001', items: [{ title: 'The Midnight Library', author: 'Matt Haig', quantity: 1, price: 349 }, { title: 'Atomic Habits', author: 'James Clear', quantity: 1, price: 399 }] },
+  //     { order_id: 1002, status: 'shipped', total: 499, date: '2026-04-01T14:00:00', address: '42 MG Road, Bhubaneswar, Odisha 751001', items: [{ title: 'Sapiens', author: 'Yuval Noah Harari', quantity: 1, price: 499 }] },
+  //     { order_id: 1003, status: 'processing', total: 249, date: '2026-04-07T09:00:00', address: '42 MG Road, Bhubaneswar, Odisha 751001', items: [{ title: '1984', author: 'George Orwell', quantity: 1, price: 249 }] },
+  //   ];
+  // }
 
   loadOrders();
 </script>

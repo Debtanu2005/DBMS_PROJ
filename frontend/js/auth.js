@@ -69,6 +69,7 @@ async function handleLogin() {
   try {
     await apiLogin(email, password);
     showFormSuccess('Signed in! Redirecting…');
+    
     setTimeout(() => window.location.href = 'search.html', 900);
   } catch (err) {
     showFormError(err.message || 'Login failed. Please try again.');
