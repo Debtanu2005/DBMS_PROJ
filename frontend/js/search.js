@@ -279,7 +279,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // 🔑 Show admin link
-  const token = localStorage.getItem("folio_token");
+  
   const role = localStorage.getItem("role");
   const link = document.getElementById("addBookLink");
 

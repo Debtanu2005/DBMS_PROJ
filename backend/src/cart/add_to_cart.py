@@ -1,6 +1,7 @@
 from src.data_connection.connection import connect_db, disconnect_db
 from src.logger import logging
 from src.exception import MyException
+import sys
 
 class CartManager:
     def __init__(self):
@@ -74,8 +75,8 @@ class CartManager:
 
         except Exception as e:
             self.conn.rollback()  
-            logging.error(f"Error adding to cart: {str(e)}")
-            raise MyException("Failed to add item to cart", str(e))
+            logging.error(f"Error adding to cart: {sys.exc_info()}, error: {str(e)}")
+            raise MyException("Failed to add item to cart", sys)
         
         
     def __del__(self):

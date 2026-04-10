@@ -21,7 +21,8 @@
 
   /* Typography */
   --font-serif: 'Cormorant Garamond', Georgia, serif;
-  --font-mono:  'DM Mono', monospace;
+  --font-mono-base:  'DM Mono', monospace;
+  --font-mono: 1.25rem/1 'DM Mono', monospace;
 
   /* Spacing scale */
   --space-xs:  0.4rem;
@@ -126,7 +127,7 @@ nav.fixed {
 }
 .nav-links a {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.9rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
