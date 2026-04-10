@@ -1,0 +1,315 @@
+/* ================================================================
+   landing.css
+   Folio — Styles exclusive to index.html
+   (Hero, shelf decoration, marquee strip, features grid,
+    search preview section, CTA banner)
+   Depends on: main.css
+================================================================ */
+
+/* ── BODY OVERRIDE ───────────────────────────────────────────── */
+/* Landing page uses fixed nav so body needs top padding */
+body.landing { overflow-x: hidden; }
+
+/* ── NAV OVERRIDE ────────────────────────────────────────────── */
+/* Landing nav is fixed and slightly more transparent */
+body.landing nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  padding: 1.2rem 4rem;
+  background: rgba(245, 240, 232, 0.88);
+}
+body.landing .nav-links a:hover { color: var(--ink); }
+
+/* ── HERO ────────────────────────────────────────────────────── */
+.hero {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding-top: 72px;   /* offset for fixed nav */
+  overflow: hidden;
+}
+
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 6rem 4rem 6rem 6rem;
+}
+
+.hero-title {
+  font-size: clamp(3.5rem, 6vw, 6rem);
+  font-weight: 300;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  animation: fadeUp 0.8s 0.12s ease both;
+}
+.hero-title em { font-style: italic; color: var(--rust); }
+
+.hero-eyebrow { animation: fadeUp 0.8s ease both; }
+
+.hero-sub {
+  margin-top: 2rem;
+  font-size: 1.3rem;
+  font-weight: 300;
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 38ch;
+  animation: fadeUp 0.8s 0.24s ease both;
+}
+
+.hero-actions {
+  margin-top: 3rem;
+  display: flex;
+  gap: 1.2rem;
+  align-items: center;
+  animation: fadeUp 0.8s 0.36s ease both;
+}
+
+.hero-stat-row {
+  margin-top: 4rem;
+  display: flex;
+  gap: 3rem;
+  animation: fadeUp 0.8s 0.48s ease both;
+}
+.stat-item  { display: flex; flex-direction: column; gap: 0.2rem; }
+.stat-num   { font-size: 2.4rem; font-weight: 600; letter-spacing: -0.02em; }
+.stat-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── HERO RIGHT — decorative shelf panel ────────────────────── */
+.hero-right {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cream);
+  border-left: 1px solid var(--rule);
+  overflow: hidden;
+  animation: fadeIn 1s 0.2s ease both;
+}
+
+.shelf {
+  position: relative;
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  z-index: 1;
+}
+.shelf-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  position: relative;
+}
+.shelf-line {
+  position: absolute;
+  bottom: -4px;
+  left: -20px; right: -20px;
+  height: 4px;
+  background: var(--ink);
+  border-radius: 1px;
+}
+
+.deco-circle,
+.deco-circle-2 {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid var(--rule);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.deco-circle   { width: 300px; height: 300px; }
+.deco-circle-2 { width: 500px; height: 500px; }
+
+/* ── MARQUEE STRIP ───────────────────────────────────────────── */
+.marquee-strip {
+  background: var(--ink);
+  padding: 0.8rem 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.marquee-inner {
+  display: inline-block;
+  animation: marquee 22s linear infinite;
+}
+.marquee-inner span {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0 2.5rem;
+  color: var(--paper);
+}
+.marquee-inner span.accent { color: var(--gold); }
+
+/* ── FEATURES SECTION ────────────────────────────────────────── */
+.section {
+  padding: 7rem 6rem;
+}
+
+.section-title {
+  font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  max-width: 22ch;
+}
+.section-title em { font-style: italic; }
+
+.features-grid {
+  margin-top: 4rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid var(--rule);
+}
+.feature-card {
+  padding: 2.5rem;
+  border-right: 1px solid var(--rule);
+  background: var(--paper);
+  transition: background 0.25s ease;
+}
+.feature-card:last-child { border-right: none; }
+.feature-card:hover { background: var(--cream); }
+
+.feature-icon { font-size: 1.8rem; margin-bottom: 1.2rem; }
+.feature-name { font-size: 1.35rem; font-weight: 600; margin-bottom: 0.6rem; }
+.feature-desc { font-size: 1.05rem; color: var(--muted); line-height: 1.6; font-weight: 300; }
+
+/* ── SEARCH PREVIEW SECTION ──────────────────────────────────── */
+.search-section {
+  background: var(--cream);
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 7rem 6rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6rem;
+  align-items: center;
+}
+
+.search-box-wrapper { position: relative; }
+
+.search-input {
+  width: 100%;
+  padding: 1.1rem 1.4rem 1.1rem 3.2rem;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  color: var(--ink);
+  outline: none;
+  transition: border-color var(--t-base);
+}
+.search-input::placeholder { color: var(--muted); }
+.search-input:focus { border-color: var(--rust); }
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 1.1rem;
+  color: var(--muted);
+  font-size: 1.2rem;
+  pointer-events: none;
+}
+
+.search-btn {
+  margin-top: 1rem;
+  width: 100%;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: background var(--t-base);
+}
+.search-btn:hover { background: var(--rust); }
+
+.search-hint {
+  margin-top: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+/* ── CTA BANNER ──────────────────────────────────────────────── */
+.cta-banner {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 3rem;
+  padding: 5rem 6rem;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.cta-title {
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.cta-title em { font-style: italic; color: var(--gold); }
+
+.cta-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 220px;
+}
+
+/* ── FOOTER OVERRIDE (landing has wider padding) ─────────────── */
+body.landing footer {
+  padding: 3rem 6rem;
+}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────── */
+@media (max-width: 960px) {
+  body.landing nav { padding: 1rem 2rem; }
+
+  .hero {
+    grid-template-columns: 1fr;
+    padding-top: 64px;
+  }
+  .hero-right  { display: none; }
+  .hero-left   { padding: 4rem 2rem; }
+
+  .section { padding: 5rem 2rem; }
+
+  .features-grid { grid-template-columns: 1fr; }
+  .feature-card  {
+    border-right: none;
+    border-bottom: 1px solid var(--rule);
+  }
+  .feature-card:last-child { border-bottom: none; }
+
+  .search-section {
+    grid-template-columns: 1fr;
+    padding: 5rem 2rem;
+    gap: 3rem;
+  }
+
+  .cta-banner {
+    grid-template-columns: 1fr;
+    padding: 4rem 2rem;
+  }
+
+  body.landing footer {
+    padding: 2rem;
+    flex-direction: column;
+    gap: 1.5rem;
+    text-align: center;
+  }
+}

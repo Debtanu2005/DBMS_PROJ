@@ -1,100 +1,120 @@
-from src.artifacts.entities import Cart_Item, cart, CourseBook
 from src.data_connection.connection import connect_db, disconnect_db
+from src.logger import logging
+from src.exception import MyException
+from src.artifacts.entities import order_desc
+import datetime
 
-class CartManager:
+
+class OrderManager:
     def __init__(self):
         self.conn = connect_db()
-
         self.cursor = self.conn.cursor()
-    def add_to_cart(self, order: Cart_Item, student_id: int) -> int:
 
+    # ================== already ordered check ==================
+    def already_ordered(self, user_id: int) -> bool:
+        self.cursor.execute(
+            """
+            SELECT o.order_id
+            FROM orders o
+            JOIN order_items oi ON o.order_id = oi.order_id
+            JOIN cart_items ci ON oi.book_id = ci.book_id
+            JOIN cart c ON ci.cart_id = c.cart_id
+            WHERE c.student_id = %s AND o.created_at >= NOW() - INTERVAL '1 day'
+            """,
+            (user_id,)
+        )
+        return self.cursor.fetchone() is not None
 
-        # ✅ Step 0: Validate book exists (using CourseBook structure)
-        self.cursor.execute("""
-            SELECT *
-            FROM books
-            WHERE book_id = %s
-        """, (order.book_id,))
+    # ================= CREATE ORDER =================
 
-        book_data = self.cursor.fetchone()
-
-        if  book_data:
-            raise Exception("Book already exist")
-
-        # Convert to CourseBook entity (optional but clean)
-        book = CourseBook(
-            course_id=0,  # not needed here
-            book_id=book_data[0],
-            title=book_data[2],
-            isbn=book_data[1],
-            publisher=book_data[3],
-            price=book_data[4],
-            quantity=book_data[5],
-            type=book_data[6],
-            purchase_option=book_data[7],
-            format=book_data[8],
-            language=book_data[9],
-            edition=book_data[10],
-            category=book_data[11]
+    def execute_order(self, user_id: int, order_info: order_desc) -> int:
+        self.cursor.execute(
+         """
+            INSERT INTO orders (student_id, created_at, status, shipping_type, card_type, card_last4)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            RETURNING order_id
+            """,
+            (
+                user_id,
+                datetime.datetime.utcnow(), 
+                "new",
+                order_info.shipping_type,
+                order_info.card_type,
+                order_info.card_last_four
+            )
         )
 
-        # ✅ Step 1: Check if cart exists
-        self.cursor.execute("""
-            SELECT cart_id, student_id, created_at, updated_at
-            FROM cart WHERE student_id = %s
-        """, (student_id,))  # ⚠️ using student_id to find cart
 
-        result = self.cursor.fetchone()
+        return self.cursor.fetchone()[0]
 
-        if result is None:
-            # ✅ Create new cart
-            self.cursor.execute("""
-                INSERT INTO cart (student_id)
-                VALUES (%s)
-                RETURNING cart_id, student_id, created_at, updated_at
-            """, (order.cart_id,))
+    # ================= COPY CART → ORDER ITEMS =================
+    def order_items(self, order_id: int, cart_id: int):
+        self.cursor.execute(
+            """
+            INSERT INTO order_items (order_id, book_id, quantity)
+            SELECT %s, book_id, quantity
+            FROM cart_items
+            WHERE cart_id = %s
+            """,
+            (order_id, cart_id)
+        )
 
-            cart_data = self.cursor.fetchone()
+    # ================= UPDATE STOCK =================
+    def update_books_table(self, cart_id: int):
+        self.cursor.execute(
+            """
+            UPDATE books b
+            SET quantity = b.quantity - ci.quantity
+            FROM cart_items ci
+            WHERE ci.cart_id = %s AND ci.book_id = b.book_id
+            """,
+            (cart_id,)
+        )
 
-            user_cart = cart(
-                cart_id=cart_data[0],
-                student_id=cart_data[1],
-                created_at=str(cart_data[2]),
-                updated_at=str(cart_data[3])
-            )
-        else:
-            user_cart = cart(
-                cart_id=result[0],
-                student_id=result[1],
-                created_at=str(result[2]),
-                updated_at=str(result[3])
-            )
+    # ================= DELETE CART =================
+    def delete_cart(self, cart_id: int):
+        self.cursor.execute(
+            "DELETE FROM cart_items WHERE cart_id = %s",
+            (cart_id,)
+        )
+        self.cursor.execute(
+            "DELETE FROM cart WHERE cart_id = %s",
+            (cart_id,)
+        )
 
-        # ✅ Step 2: Check if item exists in cart
-        self.cursor.execute("""
-            SELECT id, quantity FROM cart_items
-            WHERE cart_id = %s AND book_id = %s
-        """, (user_cart.cart_id, order.book_id))
+    # ================= FULL ORDER (TRANSACTION SAFE) =================
+    def execute_full_order(self, user_id: int, cart_id: int, order_info: order_desc) -> dict:
+        try:
+            # Check if user has already ordered in the last 24 hours
+            if self.already_ordered(user_id):
+                raise MyException("Order limit exceeded", "You can only place one order every 24 hours")
 
-        item = self.cursor.fetchone()
+            #  Create order
+            order_id = self.execute_order(user_id, order_info)
 
-        if item:
-            # ✅ Update quantity
-            self.cursor.execute("""
-                UPDATE cart_items
-                SET quantity = quantity + %s
-                WHERE id = %s
-            """, (order.quantity, item[0]))
-        else:
-            # ✅ Insert new item
-            self.cursor.execute("""
-                INSERT INTO cart_items (cart_id, book_id, quantity)
-                VALUES (%s, %s, %s)
-            """, (user_cart.cart_id, order.book_id, order.quantity))
+            #  Copy items
+            self.order_items(order_id, cart_id)
 
-        self.conn.commit()
+            #  Update stock
+            self.update_books_table(cart_id)
 
-        return user_cart.cart_id
-    
+            #  Delete cart
+            self.delete_cart(cart_id)
+
+            # COMMIT ONCE (IMPORTANT)
+            self.conn.commit()
+
+            logging.info(f"Order {order_id} completed for user {user_id}")
+
+            return {"order_id": order_id}
+
+        except Exception as e:
+            self.conn.rollback()  
+            logging.error(f"Error executing order: {str(e)}")
+            raise MyException("Failed to execute order", str(e))
+
     def __del__(self):
-        disconnect_db()
+        try:
+            disconnect_db()
+        except:
+            logging.error("Error closing DB connection")

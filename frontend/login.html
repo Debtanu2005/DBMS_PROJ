@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Folio — Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --ink: #0d0d0d; --paper: #f5f0e8; --cream: #ede8dc;
+    --rust: #b85c38; --gold: #c9a84c; --muted: #7a7468;
+    --light-rule: rgba(13,13,13,0.10); --error: #c0392b;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; }
+  body { background: var(--paper); color: var(--ink); font-family: 'Cormorant Garamond', Georgia, serif; min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; }
+
+  /* LEFT PANEL */
+  .left-panel {
+    background: var(--ink); color: var(--paper);
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 3rem; position: relative; overflow: hidden;
+  }
+  .left-panel::before {
+    content: ''; position: absolute; width: 600px; height: 600px;
+    border-radius: 50%; border: 1px solid rgba(255,255,255,.06);
+    top: -100px; left: -100px; pointer-events: none;
+  }
+  .left-panel::after {
+    content: ''; position: absolute; width: 400px; height: 400px;
+    border-radius: 50%; border: 1px solid rgba(255,255,255,.06);
+    bottom: -80px; right: -80px; pointer-events: none;
+  }
+  .panel-logo { font-size: 1.6rem; font-weight: 600; letter-spacing: .04em; color: var(--paper); text-decoration: none; z-index: 1; }
+  .panel-logo span { color: var(--rust); }
+  .panel-middle { z-index: 1; }
+  .panel-quote { font-size: clamp(2rem, 3vw, 3rem); font-weight: 300; line-height: 1.15; letter-spacing: -.02em; }
+  .panel-quote em { font-style: italic; color: var(--gold); }
+  .panel-sub { margin-top: 1.5rem; font-family: 'DM Mono', monospace; font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: rgba(245,240,232,.5); }
+  .panel-shelf { z-index: 1; display: flex; gap: 8px; align-items: flex-end; }
+  .ps { border-radius: 2px; box-shadow: 2px 2px 8px rgba(0,0,0,.3); }
+  .ps1{width:20px;height:90px;background:#b85c38}.ps2{width:16px;height:75px;background:#4a6fa5}
+  .ps3{width:24px;height:100px;background:#2d4a3e}.ps4{width:14px;height:65px;background:#c9a84c}
+  .ps5{width:18px;height:85px;background:#7a4f7d}.ps6{width:22px;height:95px;background:#5c4a3a}
+  .ps7{width:15px;height:70px;background:#4a7c8e}
+
+  /* RIGHT PANEL */
+  .right-panel { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 4rem 3rem; }
+  .form-container { width: 100%; max-width: 420px; animation: fadeUp .6s ease both; }
+  .form-eyebrow { font-family: 'DM Mono', monospace; font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: var(--rust); margin-bottom: 1rem; }
+  .form-title { font-size: 2.8rem; font-weight: 300; line-height: 1.1; letter-spacing: -.02em; margin-bottom: .6rem; }
+  .form-title em { font-style: italic; }
+  .form-subtitle { font-size: 1.05rem; color: var(--muted); font-weight: 300; margin-bottom: 3rem; }
+  .form-subtitle a { color: var(--rust); text-decoration: none; border-bottom: 1px solid var(--rust); }
+
+  .field { margin-bottom: 1.6rem; }
+  .field label { display: block; font-family: 'DM Mono', monospace; font-size: .68rem; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); margin-bottom: .5rem; }
+  .field input {
+    width: 100%; padding: .9rem 1rem; background: var(--paper);
+    border: 1px solid var(--light-rule); border-bottom: 1px solid var(--ink);
+    font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--ink);
+    outline: none; transition: border-color .2s, background .2s;
+    -webkit-appearance: none;
+  }
+  .field input:focus { border-color: var(--rust); background: var(--cream); }
+  .field input.error-field { border-color: var(--error); }
+
+  .forgot-link { display: block; text-align: right; font-family: 'DM Mono', monospace; font-size: .65rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); text-decoration: none; margin-top: -.8rem; margin-bottom: 2rem; transition: color .2s; }
+  .forgot-link:hover { color: var(--rust); }
+
+  .submit-btn {
+    width: 100%; padding: 1rem; background: var(--ink); color: var(--paper);
+    font-family: 'DM Mono', monospace; font-size: .8rem; letter-spacing: .15em;
+    text-transform: uppercase; border: none; cursor: pointer; transition: background .2s;
+    position: relative; overflow: hidden;
+  }
+  .submit-btn:hover { background: var(--rust); }
+  .submit-btn:disabled { opacity: .6; cursor: not-allowed; }
+  .submit-btn .btn-text { transition: opacity .2s; }
+  .submit-btn.loading .btn-text { opacity: 0; }
+  .submit-btn .spinner {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 18px; height: 18px; border: 2px solid rgba(245,240,232,.3);
+    border-top-color: var(--paper); border-radius: 50%;
+    animation: spin .7s linear infinite; opacity: 0; transition: opacity .2s;
+  }
+  .submit-btn.loading .spinner { opacity: 1; }
+
+  .divider { display: flex; align-items: center; gap: 1rem; margin: 2rem 0; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--light-rule); }
+  .divider span { font-family: 'DM Mono', monospace; font-size: .65rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+  .register-link { display: block; text-align: center; font-family: 'DM Mono', monospace; font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); text-decoration: none; padding: .9rem; border: 1px solid var(--light-rule); transition: background .2s, border-color .2s; }
+  .register-link:hover { background: var(--cream); border-color: var(--ink); }
+
+  .error-msg { background: rgba(192,57,43,.08); border-left: 3px solid var(--error); padding: .8rem 1rem; font-family: 'DM Mono', monospace; font-size: .72rem; letter-spacing: .05em; color: var(--error); margin-bottom: 1.5rem; display: none; }
+  .error-msg.show { display: block; }
+  .success-msg { background: rgba(45,74,62,.08); border-left: 3px solid #2d4a3e; padding: .8rem 1rem; font-family: 'DM Mono', monospace; font-size: .72rem; letter-spacing: .05em; color: #2d4a3e; margin-bottom: 1.5rem; display: none; }
+  .success-msg.show { display: block; }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
+
+  @media (max-width: 768px) {
+    body { grid-template-columns: 1fr; }
+    .left-panel { display: none; }
+    .right-panel { padding: 3rem 1.5rem; min-height: 100vh; }
+  }
+</style>
+</head>
+<body>
+
+<div class="left-panel">
+  <a class="panel-logo" href="index.html">Fo<span>lio</span></a>
+  <div class="panel-middle">
+    <h2 class="panel-quote">Welcome<br/><em>back,</em><br/>reader.</h2>
+    <p class="panel-sub">Your shelf is waiting</p>
+  </div>
+  <div class="panel-shelf">
+    <div class="ps ps1"></div><div class="ps ps2"></div><div class="ps ps3"></div>
+    <div class="ps ps4"></div><div class="ps ps5"></div><div class="ps ps6"></div>
+    <div class="ps ps7"></div>
+  </div>
+</div>
+
+<div class="right-panel">
+  <div class="form-container">
+    <p class="form-eyebrow">— Sign In</p>
+    <h1 class="form-title">Hello,<br/><em>again.</em></h1>
+    <p class="form-subtitle">Don't have an account? <a href="register.html">Create one →</a></p>
+
+    <div class="error-msg" id="error-msg"></div>
+    <div class="success-msg" id="success-msg"></div>
+
+    <div class="field">
+      <label for="email">Email Address</label>
+      <input type="email" id="email" placeholder="you@example.com" autocomplete="email"/>
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+
+    <a href="#" class="forgot-link">Forgot password?</a>
+
+    <button class="submit-btn" id="login-btn" onclick="handleLogin()">
+      <span class="btn-text">Sign In</span>
+      <span class="spinner"></span>
+    </button>
+
+    <div class="divider"><span>or</span></div>
+    <a href="register.html" class="register-link">Create a new account</a>
+  </div>
+</div>
+
+<script>
+  const BASE_URL = 'http://localhost:8000';
+
+  if (localStorage.getItem('folio_token')) {
+    window.location.href = 'search.html';
+  }
+
+  async function handleLogin() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const btn = document.getElementById('login-btn');
+    const errorMsg = document.getElementById('error-msg');
+    const successMsg = document.getElementById('success-msg');
+
+    errorMsg.classList.remove('show');
+    successMsg.classList.remove('show');
+
+    if (!email || !password) {
+      showError('Please fill in all fields.');
+      return;
+    }
+
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${BASE_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Login failed');
+
+      localStorage.setItem('folio_token', data.access_token);
+      successMsg.textContent = 'Signed in! Redirecting…';
+      successMsg.classList.add('show');
+      setTimeout(() => window.location.href = 'search.html', 900);
+    } catch (err) {
+      showError(err.message);
+    } finally {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('error-msg');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+</script>
+</body>
+</html>

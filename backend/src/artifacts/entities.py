@@ -42,3 +42,27 @@ class CourseBook:
     language: str
     edition: int
     category: str
+
+@dataclass
+class order_desc:
+    # order_id: int
+    # student_id: int
+    # created_at: str
+    status: str
+    shipping_type: str
+    card_type: str
+    card_last_four: str
+
+@dataclass
+class book_new:
+    title: str
+    isbn : str
+    publisher: str 
+    price: int
+    quantity: int
+    type: str
+    purchase_option: str 
+    format: str
+    language: str
+    edition : int
+    category: str

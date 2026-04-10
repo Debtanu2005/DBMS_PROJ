@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Folio — Browse Books</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/main.css"/>
+<link rel="stylesheet" href="css/pages.css"/>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <a class="nav-logo" href="index.html">Fo<span>lio</span></a>
+  <ul class="nav-links">
+    <li><a href="search.html" class="active">Browse</a></li>
+    <li><a href="cart.html">Cart</a></li>
+    <li><a href="orders.html">Orders</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="cart.html" class="nav-cart-btn">
+      🛒 Cart <span class="cart-badge" id="cart-badge" style="display:none">0</span>
+    </a>
+    <a href="login.html" class="nav-auth-btn" id="nav-auth-btn">Sign In</a>
+  </div>
+</nav>
+
+<!-- ── PAGE HEADER ── -->
+<div class="page-header">
+  <p class="page-eyebrow">— Catalog</p>
+  <h1 class="page-title">Browse <em>every title.</em></h1>
+</div>
+
+<!-- ── SEARCH BAR ── -->
+<div class="search-bar">
+  <div class="search-field-wrap">
+    <span class="search-icon">⌕</span>
+    <input
+      class="search-field"
+      type="text"
+      id="search-input"
+      placeholder="Type a title, author name, or keyword…"
+      autocomplete="off"
+    />
+  </div>
+  <!-- search type: matches backend BookSearch by_author_or_name -->
+  <div class="search-type">
+    <button class="type-btn active" id="type-all"    onclick="setType('all')">All</button>
+    <button class="type-btn"        id="type-author" onclick="setType('author')">Author</button>
+    <button class="type-btn"        id="type-title"  onclick="setType('title')">Title</button>
+  </div>
+  <button class="search-submit" onclick="doSearch()">Search</button>
+</div>
+
+<!-- ── BODY ── -->
+<div class="body-wrap">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Sort</div>
+      <select class="sort-select" id="sort-select" onchange="sortBooks()">
+        <option value="">Relevance</option>
+        <option value="title_asc">Title A → Z</option>
+        <option value="title_desc">Title Z → A</option>
+        <option value="author_asc">Author A → Z</option>
+        <option value="price_asc">Price Low → High</option>
+        <option value="price_desc">Price High → Low</option>
+      </select>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Genre</div>
+      <div class="check-item"><input type="checkbox" id="g-fiction"    value="fiction"   /><label for="g-fiction">Fiction</label></div>
+      <div class="check-item"><input type="checkbox" id="g-nonfiction" value="nonfiction"/><label for="g-nonfiction">Non-Fiction</label></div>
+      <div class="check-item"><input type="checkbox" id="g-science"    value="science"   /><label for="g-science">Science</label></div>
+      <div class="check-item"><input type="checkbox" id="g-history"    value="history"   /><label for="g-history">History</label></div>
+      <div class="check-item"><input type="checkbox" id="g-biography"  value="biography" /><label for="g-biography">Biography</label></div>
+      <div class="check-item"><input type="checkbox" id="g-philosophy" value="philosophy"/><label for="g-philosophy">Philosophy</label></div>
+    </div>
+
+    <div class="sidebar-section">
+      <button class="clear-filters" onclick="clearFilters()">Clear All Filters</button>
+    </div>
+  </aside>
+
+  <!-- Results -->
+  <main class="results-area">
+    <div class="results-toolbar">
+      <p class="results-info" id="results-info">Search to discover books</p>
+      <div class="view-switcher">
+        <button class="view-btn active" id="btn-grid" title="Grid" onclick="setView('grid')">⊞</button>
+        <button class="view-btn"        id="btn-list" title="List" onclick="setView('list')">☰</button>
+      </div>
+    </div>
+
+    <div id="books-grid">
+      <!-- skeletons on first load -->
+      <div class="skel"><div class="skel-cover"></div><div class="skel-line"></div><div class="skel-line half"></div></div>
+      <div class="skel"><div class="skel-cover"></div><div class="skel-line"></div><div class="skel-line half"></div></div>
+      <div class="skel"><div class="skel-cover"></div><div class="skel-line"></div><div class="skel-line half"></div></div>
+      <div class="skel"><div class="skel-cover"></div><div class="skel-line"></div><div class="skel-line half"></div></div>
+      <div class="skel"><div class="skel-cover"></div><div class="skel-line"></div><div class="skel-line half"></div></div>
+      <div class="skel"><div class="skel-cover"></div><div class="skel-line"></div><div class="skel-line half"></div></div>
+    </div>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<footer>
+  <div class="footer-logo">Fo<span>lio</span></div>
+  <p class="footer-copy">© 2026 Folio</p>
+</footer>
+
+<script>
+/* ─────────────────────────────────────────────────────────
+   CONFIG
+───────────────────────────────────────────────────────── */
+const BASE_URL = 'http://localhost:8000';
+
+// Book spine colours — deterministic by index
+const SPINE_COLORS = [
+  '#b85c38','#4a6fa5','#2d4a3e','#7a4f7d',
+  '#5c4a3a','#3d6b5e','#8c3b2a','#4a7c8e',
+  '#6b5a4e','#c47b3a','#3a5c7a','#856a44',
+];
+
+/* ─────────────────────────────────────────────────────────
+   STATE
+───────────────────────────────────────────────────────── */
+let state = {
+  query:    '',
+  type:     'all',      // 'all' | 'author' | 'title'
+  sort:     '',
+  view:     'grid',
+  books:    [],         // raw results from last fetch
+  filtered: [],         // after client-side sort applied
+};
+
+/* ─────────────────────────────────────────────────────────
+   NAV — auth-aware
+───────────────────────────────────────────────────────── */
+function initNav() {
+  const token = localStorage.getItem('folio_token');
+  const btn   = document.getElementById('nav-auth-btn');
+  if (token) {
+    btn.textContent = 'Sign Out';
+    btn.href = '#';
+    btn.onclick = e => {
+      e.preventDefault();
+      localStorage.removeItem('folio_token');
+      location.reload();
+    };
+  }
+}
+
+/* ─────────────────────────────────────────────────────────
+   SEARCH TYPE TOGGLE
+───────────────────────────────────────────────────────── */
+function setType(t) {
+  state.type = t;
+  ['all','author','title'].forEach(id => {
+    document.getElementById('type-' + id).classList.toggle('active', id === t);
+  });
+  // update placeholder hint
+  const hints = { all: 'Type a title, author name, or keyword…', author: 'Enter an author name…', title: 'Enter a book title…' };
+  document.getElementById('search-input').placeholder = hints[t];
+}
+
+/* ─────────────────────────────────────────────────────────
+   VIEW TOGGLE  (no re-fetch — just re-render)
+───────────────────────────────────────────────────────── */
+function setView(v) {
+  state.view = v;
+  document.getElementById('btn-grid').classList.toggle('active', v === 'grid');
+  document.getElementById('btn-list').classList.toggle('active', v === 'list');
+  const grid = document.getElementById('books-grid');
+  grid.classList.toggle('is-list', v === 'list');
+  // re-render cards so list/grid class on each card is correct
+  renderBooks(state.filtered);
+}
+
+/* ─────────────────────────────────────────────────────────
+   SORT  (client-side — no re-fetch)
+───────────────────────────────────────────────────────── */
+function sortBooks() {
+  const val = document.getElementById('sort-select').value;
+  state.sort = val;
+  const books = [...state.books];
+
+  if (val === 'title_asc')   books.sort((a,b) => (a.title||'').localeCompare(b.title||''));
+  if (val === 'title_desc')  books.sort((a,b) => (b.title||'').localeCompare(a.title||''));
+  if (val === 'author_asc')  books.sort((a,b) => (a.author||'').localeCompare(b.author||''));
+  if (val === 'price_asc')   books.sort((a,b) => (a.price||0) - (b.price||0));
+  if (val === 'price_desc')  books.sort((a,b) => (b.price||0) - (a.price||0));
+
+  state.filtered = books;
+  renderBooks(state.filtered);
+}
+
+/* ─────────────────────────────────────────────────────────
+   CLEAR FILTERS
+───────────────────────────────────────────────────────── */
+function clearFilters() {
+  document.querySelectorAll('.check-item input').forEach(c => c.checked = false);
+  document.getElementById('sort-select').value = '';
+  state.sort = '';
+  state.filtered = [...state.books];
+  renderBooks(state.filtered);
+}
+
+/* ─────────────────────────────────────────────────────────
+   MAIN SEARCH  — calls backend
+   Backend route (from router.py): BookSearch from
+   src.search_books.by_author_or_name
+   We'll try /search_books and /search as fallback.
+───────────────────────────────────────────────────────── */
+async function doSearch() {
+  const query = document.getElementById('search-input').value.trim();
+  state.query = query;
+
+  showSkeletons();
+  updateResultsInfo('Searching…');
+
+  try {
+    const books = await fetchBooks(query, state.type);
+    state.books    = books;
+    state.filtered = books;
+    sortBooks();          // apply current sort if any
+    renderBooks(state.filtered);
+  } catch (err) {
+    console.warn('Backend unavailable, using mock data:', err.message);
+    const books = getMockBooks(query, state.type);
+    state.books    = books;
+    state.filtered = books;
+    renderBooks(state.filtered);
+  }
+}
+
+async function fetchBooks(query, type) {
+  // Build query string matching backend BookSearch:
+  // Try ?q=<query>&type=<type> first, fallback to ?author= / ?name=
+  let url;
+  if (type === 'author') {
+    url = `${BASE_URL}/search_books?author=${encodeURIComponent(query)}`;
+  } else if (type === 'title') {
+    url = `${BASE_URL}/search_books?name=${encodeURIComponent(query)}`;
+  } else {
+    // 'all' — send as generic q param; backend may use either field
+    url = `${BASE_URL}/search_books?q=${encodeURIComponent(query)}`;
+  }
+
+  const token = localStorage.getItem('folio_token');
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(url, { headers });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `HTTP ${res.status}`);
+  }
+
+  const data = await res.json();
+  // Normalise: backend may return array OR { books: [...] } OR { results: [...] }
+  if (Array.isArray(data))         return data;
+  if (Array.isArray(data.books))   return data.books;
+  if (Array.isArray(data.results)) return data.results;
+  return [];
+}
+
+/* ─────────────────────────────────────────────────────────
+   RENDER BOOKS
+───────────────────────────────────────────────────────── */
+function renderBooks(books) {
+  const grid = document.getElementById('books-grid');
+  grid.className = state.view === 'list' ? 'is-list' : '';
+
+  updateResultsInfo(
+    books.length === 0
+      ? 'No results'
+      : `<strong>${books.length}</strong> result${books.length !== 1 ? 's' : ''}${state.query ? ` for "<em>${state.query}</em>"` : ''}`
+  );
+
+  if (!books.length) {
+    grid.innerHTML = `
+      <div class="state-box">
+        <div class="state-icon">📚</div>
+        <div class="state-title">${state.query ? `Nothing found for "${state.query}"` : 'No books to show'}</div>
+        <div class="state-sub">Try a different search term or clear filters</div>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = books.map((book, i) => bookCardHTML(book, i)).join('');
+}
+
+function bookCardHTML(book, idx) {
+  const color  = SPINE_COLORS[idx % SPINE_COLORS.length];
+  const title  = escHtml(book.title  || book.book_title  || book.name   || 'Untitled');
+  const author = escHtml(book.author || book.author_name || book.writer  || 'Unknown Author');
+  const price  = book.price ? `<div class="book-price">₹${book.price}</div>` : '';
+  const id     = book.id    || book.book_id || idx;
+  const delay  = `${idx * 0.035}s`;
+
+  return `
+    <div class="book-card" style="animation-delay:${delay}">
+      <div class="book-spine" style="background:${color}">
+        <span class="book-spine-text">${title}</span>
+      </div>
+      <div class="book-body">
+        <div class="book-title">${title}</div>
+        <div class="book-author">${author}</div>
+        ${price}
+      </div>
+      <div class="book-footer">
+        <button
+          class="add-cart-btn"
+          id="add-btn-${id}"
+          data-id="${id}"
+          data-title="${title}"
+          onclick="addToCart(this)"
+        >Add to Cart</button>
+      </div>
+    </div>`;
+}
+
+/* ─────────────────────────────────────────────────────────
+   ADD TO CART
+───────────────────────────────────────────────────────── */
+async function addToCart(btn) {
+  const token = localStorage.getItem('folio_token');
+  if (!token) {
+    toast('Sign in to add books to your cart', 'err');
+    setTimeout(() => window.location.href = 'login.html', 1100);
+    return;
+  }
+
+  const bookId = btn.dataset.id;
+  const title  = btn.dataset.title;
+
+  btn.disabled = true;
+  btn.textContent = '…';
+
+  try {
+    const res = await fetch(
+      `${BASE_URL}/add_to_cart?book_id=${encodeURIComponent(bookId)}&quantity=1`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      throw new Error(d.detail || `Error ${res.status}`);
+    }
+
+    btn.textContent = '✓ Added';
+    btn.classList.add('is-added');
+    toast(`"${title}" added to cart`, 'ok');
+
+    // Reset button after 2 s
+    setTimeout(() => {
+      btn.textContent = 'Add to Cart';
+      btn.classList.remove('is-added');
+      btn.disabled = false;
+    }, 2000);
+
+  } catch (err) {
+    btn.textContent = 'Add to Cart';
+    btn.disabled = false;
+    toast(err.message, 'err');
+  }
+}
+
+/* ─────────────────────────────────────────────────────────
+   UI HELPERS
+───────────────────────────────────────────────────────── */
+function showSkeletons() {
+  const grid = document.getElementById('books-grid');
+  grid.className = '';
+  grid.innerHTML = Array.from({ length: 8 }, (_, i) => `
+    <div class="skel" style="animation-delay:${i*0.04}s">
+      <div class="skel-cover"></div>
+      <div class="skel-line"></div>
+      <div class="skel-line half"></div>
+    </div>`).join('');
+}
+
+function updateResultsInfo(html) {
+  document.getElementById('results-info').innerHTML = html;
+}
+
+let toastTimer;
+function toast(msg, type = 'ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+/* ─────────────────────────────────────────────────────────
+   MOCK DATA  (fallback when backend is offline)
+───────────────────────────────────────────────────────── */
+function getMockBooks(q, type) {
+  const ALL = [
+    { id:1,  title:'The Midnight Library',       author:'Matt Haig',            price:349 },
+    { id:2,  title:'Sapiens',                     author:'Yuval Noah Harari',    price:499 },
+    { id:3,  title:'Atomic Habits',               author:'James Clear',          price:399 },
+    { id:4,  title:'The Alchemist',               author:'Paulo Coelho',         price:299 },
+    { id:5,  title:'1984',                         author:'George Orwell',        price:249 },
+    { id:6,  title:'Dune',                         author:'Frank Herbert',        price:449 },
+    { id:7,  title:'Thinking, Fast and Slow',     author:'Daniel Kahneman',     price:549 },
+    { id:8,  title:'The Name of the Wind',        author:'Patrick Rothfuss',    price:399 },
+    { id:9,  title:'A Brief History of Time',     author:'Stephen Hawking',     price:329 },
+    { id:10, title:'The Psychology of Money',     author:'Morgan Housel',       price:379 },
+    { id:11, title:'Crime and Punishment',        author:'Fyodor Dostoevsky',   price:279 },
+    { id:12, title:'The Brothers Karamazov',      author:'Fyodor Dostoevsky',   price:319 },
+  ];
+  if (!q) return ALL;
+  const ql = q.toLowerCase();
+  return ALL.filter(b => {
+    if (type === 'author') return b.author.toLowerCase().includes(ql);
+    if (type === 'title')  return b.title.toLowerCase().includes(ql);
+    return b.title.toLowerCase().includes(ql) || b.author.toLowerCase().includes(ql);
+  });
+}
+
+/* ─────────────────────────────────────────────────────────
+   INIT
+───────────────────────────────────────────────────────── */
+initNav();
+
+// Pre-fill query from URL param (e.g. from landing page search)
+const urlParams = new URLSearchParams(window.location.search);
+const preQuery  = urlParams.get('q') || '';
+if (preQuery) {
+  document.getElementById('search-input').value = preQuery;
+  state.query = preQuery;
+}
+
+// Load on page ready
+window.addEventListener('DOMContentLoaded', () => doSearch());
+
+// Enter key on search input
+document.getElementById('search-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
+</script>
+</body>
+</html>

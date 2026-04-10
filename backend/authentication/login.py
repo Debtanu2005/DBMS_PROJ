@@ -10,7 +10,7 @@ class LoginManager:
         self.conn = connect_db()
         self.cursor = self.conn.cursor()
 
-    def login(self, email: str, password: str) -> str:
+    def login(self, email: str, password: str) -> dict:
         try:
             self.cursor.execute("""
                 SELECT user_id, email, password, role
@@ -26,12 +26,11 @@ class LoginManager:
 
             user_id, email, hashed_password, role = user_data
 
-            # ✅ Step 2: Verify password
+    
             if not verify_password(password, hashed_password):
                 logging.warning(f"Invalid password for email: {email}")
                 raise MyException("Invalid email or password")
 
-            # ✅ Step 3: Create JWT token
             token_data = {
                 "user_id": user_id,
                 "email": email,
@@ -41,7 +40,9 @@ class LoginManager:
             access_token = create_access_token(token_data)
 
             logging.info(f"User {email} logged in successfully")
-            return access_token
+            return {"access_token": access_token,
+                    "user_id": user_id,
+                    "email": email}
 
         except Exception as e:
             logging.error(f"Login error: {str(e)}")

@@ -1,0 +1,304 @@
+/* ================================================================
+   auth.css
+   Folio — Login & Register page styles
+   (Split-panel layout, form container, password strength,
+    step list, section labels)
+   Depends on: main.css
+================================================================ */
+
+/* ── PAGE LAYOUT ─────────────────────────────────────────────── */
+body.auth-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+/* ── LEFT PANEL — dark branding side ────────────────────────── */
+.left-panel {
+  background: var(--ink);
+  color: var(--paper);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 3rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative rings */
+.left-panel::before {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  top: -100px; left: -100px;
+  pointer-events: none;
+}
+.left-panel::after {
+  content: '';
+  position: absolute;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  bottom: -80px; right: -80px;
+  pointer-events: none;
+}
+
+/* Register page — light left panel variant */
+.left-panel.light {
+  background: var(--cream);
+  color: var(--ink);
+  border-right: 1px solid var(--rule);
+}
+.left-panel.light::before {
+  border-color: rgba(13, 13, 13, 0.06);
+  top: auto; left: auto;
+  bottom: -100px; right: -100px;
+}
+.left-panel.light::after { display: none; }
+
+/* Panel logo */
+.panel-logo {
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--paper);
+  text-decoration: none;
+  z-index: 1;
+  position: relative;
+}
+.panel-logo span { color: var(--rust); }
+.left-panel.light .panel-logo { color: var(--ink); }
+
+/* Panel quote */
+.panel-middle { z-index: 1; position: relative; }
+
+.panel-quote {
+  font-size: clamp(2rem, 3vw, 3rem);
+  font-weight: 300;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.panel-quote em { font-style: italic; color: var(--gold); }
+.left-panel.light .panel-quote em { color: var(--rust); }
+
+.panel-sub {
+  margin-top: 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245, 240, 232, 0.5);
+}
+.left-panel.light .panel-sub { color: var(--muted); }
+
+.panel-accent {
+  margin-top: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Panel shelf (mini book spines at bottom of panel) */
+.panel-shelf {
+  z-index: 1;
+  position: relative;
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+/* ── REGISTER PANEL — step list ─────────────────────────────── */
+.panel-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+.step {
+  display: flex;
+  gap: 1.2rem;
+  align-items: flex-start;
+}
+.step-num {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+.step-text strong {
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.2rem;
+}
+.step-text span {
+  font-size: 0.95rem;
+  color: var(--muted);
+  font-weight: 300;
+}
+
+/* ── RIGHT PANEL — form side ────────────────────────────────── */
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem 3rem;
+  overflow-y: auto;
+}
+
+/* ── FORM CONTAINER ──────────────────────────────────────────── */
+.form-container {
+  width: 100%;
+  max-width: 440px;
+  animation: fadeUp 0.6s ease both;
+}
+
+.form-title {
+  font-size: 2.8rem;
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.6rem;
+}
+.form-title em { font-style: italic; }
+
+.form-subtitle {
+  font-size: 1.05rem;
+  color: var(--muted);
+  font-weight: 300;
+  margin-bottom: 3rem;
+}
+.form-subtitle a {
+  color: var(--rust);
+  text-decoration: none;
+  border-bottom: 1px solid var(--rust);
+  transition: opacity var(--t-base);
+}
+.form-subtitle a:hover { opacity: 0.7; }
+
+/* ── SECTION LABEL (register only) ──────────────────────────── */
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--cream);
+  border: 1px solid var(--rule);
+  padding: 0.4rem 0.8rem;
+  display: inline-block;
+  margin-bottom: 1.2rem;
+  margin-top: 0.5rem;
+}
+
+/* ── FORGOT LINK ─────────────────────────────────────────────── */
+.forgot-link {
+  display: block;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  margin-top: -0.8rem;
+  margin-bottom: 2rem;
+  transition: color var(--t-base);
+}
+.forgot-link:hover { color: var(--rust); }
+
+/* ── SUBMIT BUTTON ───────────────────────────────────────────── */
+.submit-btn {
+  width: 100%;
+  padding: 1rem;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: background var(--t-base);
+  /* loading pattern from main.css */
+  position: relative;
+  overflow: hidden;
+}
+.submit-btn:hover:not(:disabled)  { background: var(--rust); }
+.submit-btn:disabled               { opacity: 0.6; cursor: not-allowed; }
+.submit-btn .btn-text              { transition: opacity var(--t-base); }
+.submit-btn.loading .btn-text      { opacity: 0; }
+.submit-btn .spinner {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px; height: 18px;
+  border: 2px solid rgba(245, 240, 232, 0.3);
+  border-top-color: var(--paper);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  opacity: 0;
+  transition: opacity var(--t-base);
+}
+.submit-btn.loading .spinner { opacity: 1; }
+
+/* ── SECONDARY LINK BUTTON ───────────────────────────────────── */
+.register-link,
+.login-link {
+  display: block;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  padding: 0.9rem;
+  border: 1px solid var(--rule);
+  transition: background var(--t-base), border-color var(--t-base);
+}
+.register-link:hover,
+.login-link:hover {
+  background: var(--cream);
+  border-color: var(--ink);
+}
+
+/* ── PASSWORD STRENGTH BAR ───────────────────────────────────── */
+.password-strength {
+  margin-top: 0.4rem;
+  height: 3px;
+  background: var(--rule);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.password-strength-bar {
+  height: 100%;
+  width: 0;
+  border-radius: 2px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  body.auth-page {
+    grid-template-columns: 1fr;
+  }
+  .left-panel { display: none; }
+  .right-panel {
+    padding: 3rem 1.5rem;
+    min-height: 100vh;
+  }
+}

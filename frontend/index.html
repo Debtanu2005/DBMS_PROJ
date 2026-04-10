@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Folio — Your Literary Universe</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/main.css"/>
+<link rel="stylesheet" href="css/landing.css"/>
+</head>
+<body>
+<nav>
+  <a class="nav-logo" href="index.html">Fo<span>lio</span></a>
+  <ul class="nav-links">
+    <li><a href="search.html">Browse</a></li>
+    <li><a href="cart.html">Cart</a></li>
+    <li><a href="orders.html">Orders</a></li>
+  </ul>
+  <a class="nav-cta" href="login.html" id="nav-auth-btn">Sign In</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-left">
+    <p class="hero-eyebrow">— Your Literary Universe</p>
+    <h1 class="hero-title">Every story<br/><em>deserves</em><br/>a reader.</h1>
+    <p class="hero-sub">Discover, collect, and order books from a curated library. Beautiful browsing. Seamless checkout.</p>
+    <div class="hero-actions">
+      <a href="search.html" class="btn-primary">Browse Books</a>
+      <a href="register.html" class="btn-ghost">Create Account</a>
+    </div>
+    <div class="hero-stat-row">
+      <div class="stat-item"><span class="stat-num">12k+</span><span class="stat-label">Titles</span></div>
+      <div class="stat-item"><span class="stat-num">3.4k</span><span class="stat-label">Authors</span></div>
+      <div class="stat-item"><span class="stat-num">Fast</span><span class="stat-label">Delivery</span></div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="deco-circle"></div><div class="deco-circle-2"></div>
+    <div class="shelf">
+      <div class="shelf-row"><div class="book b1"></div><div class="book b2"></div><div class="book b3"></div><div class="book b4"></div><div class="book b5"></div><div class="book b6"></div><div class="shelf-line"></div></div>
+      <div class="shelf-row"><div class="book b7"></div><div class="book b8"></div><div class="book b9"></div><div class="book b10"></div><div class="book b11"></div><div class="book b12"></div><div class="shelf-line"></div></div>
+    </div>
+  </div>
+</section>
+
+<div class="marquee-strip">
+  <div class="marquee-inner">
+    <span>Fiction</span><span class="accent">✦</span><span>Non-Fiction</span><span class="accent">✦</span><span>Science</span><span class="accent">✦</span><span>Philosophy</span><span class="accent">✦</span><span>History</span><span class="accent">✦</span><span>Biography</span><span class="accent">✦</span><span>Poetry</span><span class="accent">✦</span><span>Mystery</span><span class="accent">✦</span>
+    <span>Fiction</span><span class="accent">✦</span><span>Non-Fiction</span><span class="accent">✦</span><span>Science</span><span class="accent">✦</span><span>Philosophy</span><span class="accent">✦</span><span>History</span><span class="accent">✦</span><span>Biography</span><span class="accent">✦</span><span>Poetry</span><span class="accent">✦</span><span>Mystery</span><span class="accent">✦</span>
+  </div>
+</div>
+
+<section class="section">
+  <p class="section-eyebrow">— What Folio Offers</p>
+  <h2 class="section-title">Built for the <em>serious</em> book lover.</h2>
+  <div class="features-grid">
+    <div class="feature-card"><div class="feature-icon">🔍</div><div class="feature-name">Smart Search</div><p class="feature-desc">Find any title by author name or book title. Our catalog is always fresh and fully searchable.</p></div>
+    <div class="feature-card"><div class="feature-icon">🛒</div><div class="feature-name">Persistent Cart</div><p class="feature-desc">Add books, adjust quantities, and return later. Your cart is saved to your account securely.</p></div>
+    <div class="feature-card"><div class="feature-icon">📦</div><div class="feature-name">Order Tracking</div><p class="feature-desc">View all your past and current orders in one clean, organized timeline.</p></div>
+  </div>
+</section>
+
+<div class="search-section">
+  <div>
+    <p class="section-eyebrow">— Start Exploring</p>
+    <h2 class="section-title">Search by <em>author</em> or title.</h2>
+    <p style="margin-top:1.5rem;font-size:1.1rem;color:var(--muted);font-weight:300;line-height:1.6;">Type a name, a subject, or a mood — Folio will find what belongs on your shelf.</p>
+  </div>
+  <div class="search-box-wrapper">
+    <span class="search-icon">⌕</span>
+    <input class="search-input" type="text" placeholder="Search books or authors…" id="hero-search"/>
+    <button class="search-btn" onclick="goSearch()">Find Books</button>
+    <p class="search-hint">Search across thousands of titles instantly</p>
+  </div>
+</div>
+
+<div class="cta-banner">
+  <div><h2 class="cta-title">Your next favourite book<br/>is <em>one search away.</em></h2></div>
+  <div class="cta-actions">
+    <a href="register.html" class="btn-light">Create Free Account</a>
+    <a href="login.html" class="btn-ghost-light">I already have an account</a>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">Fo<span>lio</span></div>
+  <div class="footer-links">
+    <a href="search.html">Browse</a><a href="login.html">Login</a>
+    <a href="register.html">Register</a><a href="cart.html">Cart</a><a href="orders.html">Orders</a>
+  </div>
+  <p class="footer-copy">© 2026 Folio · All rights reserved</p>
+</footer>
+
+<script>
+  function updateNav() {
+    const token = localStorage.getItem('folio_token');
+    const btn = document.getElementById('nav-auth-btn');
+    if (token) {
+      btn.textContent = 'Sign Out'; btn.href = '#';
+      btn.onclick = e => { e.preventDefault(); localStorage.removeItem('folio_token'); location.reload(); };
+    }
+  }
+  updateNav();
+  function goSearch() {
+    const q = document.getElementById('hero-search').value.trim();
+    window.location.href = q ? `search.html?q=${encodeURIComponent(q)}` : 'search.html';
+  }
+  document.getElementById('hero-search').addEventListener('keydown', e => { if (e.key==='Enter') goSearch(); });
+</script>
+</body>
+</html>

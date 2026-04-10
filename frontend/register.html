@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Folio — Create Account</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/main.css"/>
+<link rel="stylesheet" href="css/auth.css"/>
+</head>
+<body>
+
+<div class="left-panel">
+  <a class="panel-logo" href="index.html">Fo<span>lio</span></a>
+  <div>
+    <h2 class="panel-quote">Begin your<br/><em>collection</em><br/>today.</h2>
+    <p class="panel-accent">— Free to join, forever</p>
+    <div class="panel-steps">
+      <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Create your account</strong><span>Just an email and password to get started.</span></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Browse the catalog</strong><span>Search thousands of titles by author or name.</span></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Build your shelf</strong><span>Add to cart and place orders in seconds.</span></div></div>
+    </div>
+  </div>
+  <div style="font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);">© 2026 Folio</div>
+</div>
+
+<div class="right-panel">
+  <div class="form-container">
+    <p class="form-eyebrow">— New Account</p>
+    <h1 class="form-title">Join<br/><em>Folio.</em></h1>
+    <p class="form-subtitle">Already a member? <a href="login.html">Sign in →</a></p>
+
+    <div class="error-msg" id="error-msg"></div>
+    <div class="success-msg" id="success-msg"></div>
+
+    <div class="section-label">Account Details</div>
+
+    <div class="field">
+      <label for="email">Email Address</label>
+      <input type="email" id="email" placeholder="you@example.com" autocomplete="email"/>
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Min. 6 characters" autocomplete="new-password" oninput="checkStrength(this.value)"/>
+      <div class="password-strength"><div class="password-strength-bar" id="strength-bar"></div></div>
+    </div>
+    <div class="field">
+      <label for="confirm">Confirm Password</label>
+      <input type="password" id="confirm" placeholder="Repeat password" autocomplete="new-password"/>
+    </div>
+
+    <div class="section-label" style="margin-top:1rem;">Student Info <span style="font-size:.6rem;opacity:.6">(optional)</span></div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="first-name">First Name</label>
+        <input type="text" id="first-name" placeholder="Jane"/>
+      </div>
+      <div class="field">
+        <label for="last-name">Last Name</label>
+        <input type="text" id="last-name" placeholder="Doe"/>
+      </div>
+    </div>
+    <div class="field">
+      <label for="student-id">Student ID</label>
+      <input type="text" id="student-id" placeholder="e.g. 2024001234"/>
+    </div>
+
+    <button class="submit-btn" id="register-btn" onclick="handleRegister()">
+      <span class="btn-text">Create Account</span>
+      <span class="spinner"></span>
+    </button>
+
+    <div class="divider"><span>or</span></div>
+    <a href="login.html" class="login-link">Sign in to existing account</a>
+  </div>
+</div>
+
+<script>
+  const BASE_URL = 'http://localhost:8000';
+
+  if (localStorage.getItem('folio_token')) window.location.href = 'search.html';
+
+  function checkStrength(val) {
+    const bar = document.getElementById('strength-bar');
+    let score = 0;
+    if (val.length >= 6) score++;
+    if (val.length >= 10) score++;
+    if (/[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+    const colors = ['#c0392b','#e67e22','#c9a84c','#2d4a3e','#27ae60'];
+    bar.style.width = (score * 20) + '%';
+    bar.style.background = colors[score - 1] || 'transparent';
+  }
+
+  async function handleRegister() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirm = document.getElementById('confirm').value;
+    const firstName = document.getElementById('first-name').value.trim();
+    const lastName = document.getElementById('last-name').value.trim();
+    const studentId = document.getElementById('student-id').value.trim();
+    const btn = document.getElementById('register-btn');
+
+    document.getElementById('error-msg').classList.remove('show');
+    document.getElementById('success-msg').classList.remove('show');
+
+    if (!email || !password) { showError('Email and password are required.'); return; }
+    if (password.length < 6) { showError('Password must be at least 6 characters.'); return; }
+    if (password !== confirm) { showError('Passwords do not match.'); return; }
+
+    btn.classList.add('loading'); btn.disabled = true;
+
+    const studentInfo = {};
+    if (firstName) studentInfo.first_name = firstName;
+    if (lastName) studentInfo.last_name = lastName;
+    if (studentId) studentInfo.student_id = studentId;
+
+    try {
+      const res = await fetch(`${BASE_URL}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, student_info: studentInfo })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Registration failed');
+
+      if (data.access_token) localStorage.setItem('folio_token', data.access_token);
+      const s = document.getElementById('success-msg');
+      s.textContent = 'Account created! Redirecting…';
+      s.classList.add('show');
+      setTimeout(() => window.location.href = 'search.html', 1000);
+    } catch (err) {
+      showError(err.message);
+    } finally {
+      btn.classList.remove('loading'); btn.disabled = false;
+    }
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('error-msg');
+    el.textContent = msg; el.classList.add('show');
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') handleRegister(); });
+</script>
+</body>
+</html>

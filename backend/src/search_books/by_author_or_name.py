@@ -5,16 +5,23 @@ class BookSearch:
         self.conn = connect_db()
         self.cursor = self.conn.cursor()
 
-    def search(self, query):
-        # Search for books by name or author
+    def search(self, query) -> dict:
         self.cursor.execute("""
             SELECT books.book_id, books.title, books.publisher, books.quantity, reviews.rating
-            FROM books join reviews on books.book_id = reviews.book_id
+            FROM books 
+            JOIN reviews ON books.book_id = reviews.book_id
             WHERE title ILIKE %s OR publisher ILIKE %s
         """, (f'%{query}%', f'%{query}%'))
+
+        results = self.cursor.fetchall()   # ✅ actual data
         
-        results = self.cursor.fetchall()
-        return results
+        book_ids = [row[0] for row in results]
+
+        return {
+            "book_ids": book_ids,
+            "results": results
+        }
+    
 
     def __del__(self):
         disconnect_db()
