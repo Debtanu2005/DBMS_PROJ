@@ -85,6 +85,28 @@ async function handleLogin() {
  * Password strength indicator.
  * Called oninput on the password field.
  */
+
+(function initYearLogic() {
+  const statusSel = document.getElementById('status');
+  const yearSel   = document.getElementById('year');
+  const yearHint  = document.getElementById('year-hint');
+  if (!statusSel || !yearSel) return;
+
+  statusSel.addEventListener('change', () => {
+    const max = statusSel.value === 'UG' ? 4 : statusSel.value === 'PG' ? 2 : 0;
+    yearSel.innerHTML = '<option value="">Select year…</option>';
+    if (yearHint) yearHint.textContent = statusSel.value === 'UG'
+      ? 'UG — 4-year programme' : statusSel.value === 'PG'
+      ? 'PG — 2-year programme' : '';
+    for (let y = 1; y <= max; y++) {
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = `Year ${y}`;
+      yearSel.appendChild(opt);
+    }
+  });
+})();
+
 function checkStrength(val) {
   const bar = document.getElementById('strength-bar');
   if (!bar) return;
@@ -137,10 +159,29 @@ async function handleRegister() {
   setButtonLoading('register-btn', true);
 
   // Build optional student_info only if fields were filled
-  const studentInfo = {};
-  if (firstName) studentInfo.first_name = firstName;
-  if (lastName)  studentInfo.last_name  = lastName;
-  if (studentId) studentInfo.student_id = studentId;
+const phone         = document.getElementById('phone')?.value.trim()  || '';
+const dob           = document.getElementById('dob')?.value            || '';
+const universityId  = parseInt(document.getElementById('university')?.value) || null;
+const major         = document.getElementById('major')?.value.trim()   || '';
+const status        = document.getElementById('status')?.value         || '';
+const yearOfStudent = parseInt(document.getElementById('year')?.value) || null;
+
+if (phone && !/^\d{7,15}$/.test(phone)) {
+  showFormError('Phone number must be 7–15 digits.'); return;
+}
+if (status && !yearOfStudent) {
+  showFormError('Please select your year of study.'); return;
+}
+
+const studentInfo = {};
+if (firstName)     studentInfo.first_name      = firstName;
+if (lastName)      studentInfo.last_name       = lastName;
+if (phone)         studentInfo.phone           = phone;
+if (dob)           studentInfo.dob             = dob;
+if (universityId)  studentInfo.university_id   = universityId;
+if (major)         studentInfo.major           = major;
+if (status)        studentInfo.status          = status;
+if (yearOfStudent) studentInfo.year_of_student = yearOfStudent;
 
   try {
     await apiRegister(email, password, studentInfo);
