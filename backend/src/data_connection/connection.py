@@ -1,39 +1,38 @@
-import psycopg2
+import mysql.connector
 from src.logger import logging
 from src.exception import MyException
 import sys
-import string 
-# global connection object
 
 conn = None
 
-def connect_db()->psycopg2.extensions.connection:
+def connect_db():
     global conn
-    
-    if conn is not None and conn.closed == 0:
+
+    if conn is not None and conn.is_connected():
         print("Database already connected.")
         return conn
-    
+
     try:
-        conn = psycopg2.connect(
+        conn = mysql.connector.connect(
             host="localhost",
-            database="DBMS_proj",
-            user="postgres",
-            password="Debtanu@7861",
-            port="5432"
+            database="gyanpustak",
+            user="vr_1",
+            password="123456",
+            port=3306
         )
         print("Database connection established successfully.")
         return conn
-    
+
     except Exception as e:
         raise MyException(e, sys)
-    
-    
-def disconnect_db()->psycopg2.extensions.connection:
+
+
+def disconnect_db():
     global conn
-    if conn is None or conn.closed != 0:
+
+    if conn is None or not conn.is_connected():
         return None
-    
+
     try:
         conn.close()
         print("Database connection closed successfully.")
@@ -41,9 +40,3 @@ def disconnect_db()->psycopg2.extensions.connection:
 
     except Exception as e:
         raise MyException(e, sys)
-    
-
-
-# connect_db()
-# disconnect_db()
-

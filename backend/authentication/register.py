@@ -25,14 +25,13 @@ class RegisterManager:
             # Step 2: Hash password
             hashed_password = hash_password(password)
 
-            # Step 3: Insert into users table   
+            # Step 3: Insert into users table
             self.cursor.execute("""
                 INSERT INTO users (email, password, role, created_at)
                 VALUES (%s, %s, %s, NOW())
-                RETURNING user_id
             """, (email, hashed_password, student_info.role))
 
-            user_id = self.cursor.fetchone()[0]   # ✅ ONLY ONCE
+            user_id = self.cursor.lastrowid
 
             # Step 4: Insert into students table
             self.cursor.execute("""
@@ -76,6 +75,6 @@ class RegisterManager:
     def __del__(self):
         try:
             self.cursor.close()
-            disconnect_db(self.conn)   # FIXED
+            disconnect_db(self.conn)
         except:
             pass

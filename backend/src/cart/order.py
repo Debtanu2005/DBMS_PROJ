@@ -10,7 +10,6 @@ class OrderManager:
         self.conn = connect_db()
         self.cursor = self.conn.cursor()
 
-    # ================== already ordered check ==================
     def already_ordered(self, user_id: int) -> bool:
         self.cursor.execute(
             """
@@ -19,35 +18,30 @@ class OrderManager:
             JOIN order_items oi ON o.order_id = oi.order_id
             JOIN cart_items ci ON oi.book_id = ci.book_id
             JOIN cart c ON ci.cart_id = c.cart_id
-            WHERE c.student_id = %s AND o.created_at >= NOW() - INTERVAL '1 day'
+            WHERE c.student_id = %s AND o.created_at >= NOW() - INTERVAL 1 DAY
             """,
             (user_id,)
         )
         return self.cursor.fetchone() is not None
 
-    # ================= CREATE ORDER =================
-
     def execute_order(self, user_id: int, order_info: order_desc) -> int:
+        # MySQL — no RETURNING, use lastrowid
         self.cursor.execute(
-         """
+            """
             INSERT INTO orders (student_id, created_at, status, shipping_type, card_type, card_last4)
             VALUES (%s, %s, %s, %s, %s, %s)
-            RETURNING order_id
             """,
             (
                 user_id,
-                datetime.datetime.utcnow(), 
+                datetime.datetime.utcnow(),
                 "new",
                 order_info.shipping_type,
                 order_info.card_type,
                 order_info.card_last_four
             )
         )
+        return self.cursor.lastrowid
 
-
-        return self.cursor.fetchone()[0]
-
-    # ================= COPY CART → ORDER ITEMS =================
     def order_items(self, order_id: int, cart_id: int):
         self.cursor.execute(
             """
@@ -59,19 +53,18 @@ class OrderManager:
             (order_id, cart_id)
         )
 
-    # ================= UPDATE STOCK =================
     def update_books_table(self, cart_id: int):
+        # MySQL — no FROM clause in UPDATE, use JOIN
         self.cursor.execute(
             """
             UPDATE books b
-            SET quantity = b.quantity - ci.quantity
-            FROM cart_items ci
-            WHERE ci.cart_id = %s AND ci.book_id = b.book_id
+            JOIN cart_items ci ON ci.book_id = b.book_id
+            SET b.quantity = b.quantity - ci.quantity
+            WHERE ci.cart_id = %s
             """,
             (cart_id,)
         )
 
-    # ================= DELETE CART =================
     def delete_cart(self, cart_id: int):
         self.cursor.execute(
             "DELETE FROM cart_items WHERE cart_id = %s",
@@ -82,36 +75,24 @@ class OrderManager:
             (cart_id,)
         )
 
-    # ================= FULL ORDER (TRANSACTION SAFE) =================
     def execute_full_order(self, user_id: int, cart_id: int, order_info: order_desc) -> dict:
         try:
-            # Check if user has already ordered in the last 24 hours
             if self.already_ordered(user_id):
-                raise MyException("Order limit exceeded", "You can only place one order every 24 hours")
+               raise MyException("Order limit exceeded", "You can only place one order every 24 hours")
 
-            #  Create order
             order_id = self.execute_order(user_id, order_info)
-
-            #  Copy items
             self.order_items(order_id, cart_id)
-
-            #  Update stock
             self.update_books_table(cart_id)
-
-            #  Delete cart
             self.delete_cart(cart_id)
-
-            # COMMIT ONCE (IMPORTANT)
             self.conn.commit()
 
             logging.info(f"Order {order_id} completed for user {user_id}")
-
             return {"order_id": order_id}
 
         except Exception as e:
-            self.conn.rollback()  
+            self.conn.rollback()
             logging.error(f"Error executing order: {str(e)}")
-            raise MyException("Failed to execute order", str(e))
+            raise e
 
     def __del__(self):
         try:

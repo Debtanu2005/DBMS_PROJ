@@ -15,9 +15,9 @@ class CartManager:
         else:
             return None
     def create_cart(self, user_id: int) -> dict:
-        self.cursor.execute("INSERT INTO cart (student_id) VALUES (%s) RETURNING cart_id", (user_id,))
-        cart_id = self.cursor.fetchone()[0]
+        self.cursor.execute("INSERT INTO cart (student_id) VALUES (%s)", (user_id,))
         self.conn.commit()
+        cart_id = self.cursor.lastrowid
         return {"cart_id": cart_id, "user_id": user_id}
     def add_to_cart(self, user_id: int, book_id: int, quantity: int):
         try:
@@ -76,7 +76,25 @@ class CartManager:
             self.conn.rollback()  
             logging.error(f"Error adding to cart: {str(e)}")
             raise MyException("Failed to add item to cart", str(e))
-        
+    def remove_from_cart(self, user_id: int, book_id: int):
+        try:
+            cart_data = self.check_user_cart(user_id)
+            if not cart_data:
+                raise Exception("Cart not found")
+            
+            cart_id = cart_data["cart_id"]
+            
+            self.cursor.execute(
+                "DELETE FROM cart_items WHERE cart_id = %s AND book_id = %s",
+                (cart_id, book_id)
+            )
+            self.conn.commit()
+            return {"removed": book_id}
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Error removing from cart: {str(e)}")
+            raise e
+            
         
     def __del__(self):
         try:
