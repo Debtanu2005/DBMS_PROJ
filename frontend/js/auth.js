@@ -66,8 +66,10 @@ async function handleLogin() {
 
   setButtonLoading('login-btn', true);
 
-  try {
-    await apiLogin(email, password);
+try {
+    const data = await apiLogin(email, password);
+    localStorage.setItem("folio_token", data.access_token);
+    localStorage.setItem("user_id", data.user_id);
     showFormSuccess('Signed in! Redirecting…');
     setTimeout(() => window.location.href = 'search.html', 900);
   } catch (err) {

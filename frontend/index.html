@@ -15,6 +15,7 @@
     <li><a href="search.html">Browse</a></li>
     <li><a href="cart.html">Cart</a></li>
     <li><a href="orders.html">Orders</a></li>
+    <li><a href="support.html">Support</a></li>
   </ul>
   <a class="nav-cta" href="login.html" id="nav-auth-btn">Sign In</a>
 </nav>
@@ -93,7 +94,7 @@
 
 <script>
   function updateNav() {
-    const token = localStorage.getItem('folio_token');
+    const token = localStorage.getItem('access_token') || localStorage.getItem('folio_token');
     const btn = document.getElementById('nav-auth-btn');
     if (token) {
       btn.textContent = 'Sign Out'; btn.href = '#';

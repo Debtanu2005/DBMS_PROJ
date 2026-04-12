@@ -56,7 +56,11 @@ async function apiRegister(email, password, studentInfo = {}) {
     body   : JSON.stringify({ email, password, student_info: studentInfo }),
   });
   const data = await handleResponse(res);
-  if (data.access_token) Auth.setToken(data.access_token);
+  console.log('LOGIN RESPONSE:', data);
+  const token = typeof data.access_token === 'object' 
+  ? JSON.stringify(data.access_token) 
+  : data.access_token;
+if (token) Auth.setToken(token);  // ← correct
   return data;
 }
 
@@ -73,7 +77,11 @@ async function apiLogin(email, password) {
     body   : JSON.stringify({ email, password }),
   });
   const data = await handleResponse(res);
-  if (data.access_token) Auth.setToken(data.access_token);
+  console.log('LOGIN RESPONSE:', data);
+  const token = typeof data.access_token === 'object' 
+  ? JSON.stringify(data.access_token) 
+  : data.access_token;
+if (token) Auth.setToken(token);
   return data;
 }
 

@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
 <title>Folio — My Orders</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
 <style>
   :root {
@@ -122,6 +124,7 @@
     <li><a href="search.html">Browse</a></li>
     <li><a href="cart.html">Cart</a></li>
     <li><a href="orders.html" class="active">Orders</a></li>
+    <li><a href="support.html">Support</a></li>
   </ul>
   <a href="login.html" class="nav-auth" id="nav-auth-btn">Sign In</a>
 </nav>
@@ -152,7 +155,7 @@
   let activeFilter = 'all';
 
   function updateNav() {
-    const token = localStorage.getItem('folio_token');
+    const token = localStorage.getItem('access_token') || localStorage.getItem('folio_token');
     const btn = document.getElementById('nav-auth-btn');
     if (token) {
       btn.textContent = 'Sign Out'; btn.href = '#';
@@ -162,7 +165,7 @@
   updateNav();
 
   async function loadOrders() {
-    const token = localStorage.getItem('folio_token');
+    const token = localStorage.getItem('access_token') || localStorage.getItem('folio_token');
     const content = document.getElementById('orders-content');
 
     if (!token) {
