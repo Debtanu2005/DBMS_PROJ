@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Folio — Your Cart</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="css/main.css"/>
 <link rel="stylesheet" href="css/pages.css"/>
@@ -16,7 +17,10 @@
     <li><a href="search.html">Browse</a></li>
     <li><a href="cart.html" class="active">Cart</a></li>
     <li><a href="orders.html">Orders</a></li>
+
     <li><a href="addbook.html">Add Book</a></li>
+
+    <li><a href="support.html">Support</a></li>
   </ul>
   <a href="login.html" class="nav-auth" id="nav-auth-btn">Sign In</a>
 </nav>
@@ -43,17 +47,18 @@
   let cartItems = [];
 
   function updateNav() {
-    const token = localStorage.getItem('folio_token');
+    const token = localStorage.getItem('access_token') || localStorage.getItem('folio_token');
     const btn = document.getElementById('nav-auth-btn');
     if (token) {
       btn.textContent = 'Sign Out'; btn.href = '#';
-      btn.onclick = e => { e.preventDefault(); localStorage.removeItem('folio_token'); window.location.href='login.html'; };
+      btn.onclick = e => { e.preventDefault(); localStorage.removeItem('folio_token');
+localStorage.removeItem('access_token'); window.location.href='login.html'; };
     }
   }
   updateNav();
 
   async function loadCart() {
-    const token = localStorage.getItem('folio_token');
+    const token = localStorage.getItem('access_token') || localStorage.getItem('folio_token');
     const wrap = document.getElementById('cart-wrap');
 
     if (!token) {
@@ -95,30 +100,44 @@
       return;
     }
 
-    const subtotal = cartItems.reduce((s, item) => s + (item.price || 0) * (item.quantity || 1), 0);
+    const subtotal = cartItems.reduce(
+      (sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0
+    );
     const shipping = subtotal > 0 ? 49 : 0;
-    const total = subtotal + shipping;
+    const total    = subtotal + shipping;
+    const needsAddress = cartItems.some(
+      item => item.format === 'hardcover' || item.format === 'softcover'
+    );
 
     wrap.innerHTML = `
       <div class="cart-items">
-        ${cartItems.map((item, i) => `
-          <div class="cart-item" id="item-${item.book_id || item.id || i}" style="animation-delay:${i*0.06}s">
-            <div class="item-cover" style="background:${BOOK_COLORS[i % BOOK_COLORS.length]}">${item.title || item.book_title || 'Book'}</div>
+        ${cartItems.map((item, i) => {
+          const color  = BOOK_COLORS[i % BOOK_COLORS.length];
+          const title  = item.title || item.book_title || 'Book';
+          const author = item.author || item.book_author || 'Unknown Author';
+          const badge  = item.purchase_option
+            ? `<span class="item-badge ${item.purchase_option}">${item.purchase_option.toUpperCase()}</span>` : '';
+          const meta   = [item.format, item.type].filter(Boolean).join(' · ');
+          return `
+          <div class="cart-item" id="item-${item.book_id || i}" style="animation-delay:${i*0.06}s">
+            <div class="item-cover" style="background:${color}">${title}</div>
             <div class="item-info">
-              <div class="item-title">${item.title || item.book_title || 'Unknown Title'}</div>
-              <div class="item-author">${item.author || item.book_author || 'Unknown Author'}</div>
+              <div class="item-title">${title}</div>
+              <div class="item-author">${author}</div>
               ${item.price ? `<div class="item-price">₹${item.price}</div>` : ''}
+              ${badge}
+              ${meta ? `<span class="item-meta">${meta}</span>` : ''}
             </div>
             <div class="item-controls">
               <div class="qty-wrap">
-                <button class="qty-btn" onclick="changeQty(${i}, -1)">−</button>
+                <button class="qty-btn" onclick="changeQty(${i}, -1)">--</button>
                 <span class="qty-val" id="qty-${i}">${item.quantity || 1}</span>
                 <button class="qty-btn" onclick="changeQty(${i}, 1)">+</button>
               </div>
               <button class="remove-btn" onclick="removeItem(${i})">Remove</button>
             </div>
-          </div>
-        `).join('')}
+          </div>`;
+        }).join('')}
       </div>
 
       <div class="order-panel">
@@ -128,10 +147,15 @@
         <div class="summary-total"><span class="summary-label">Total</span><span class="summary-value">₹${total}</span></div>
 
         <div class="order-form">
+          ${needsAddress ? `
           <div class="order-field">
             <label>Delivery Address</label>
             <textarea id="delivery-address" rows="3" placeholder="Enter your full delivery address…"></textarea>
-          </div>
+            <span class="field-hint">Required for physical books in your cart</span>
+          </div>` : `
+          <div class="order-field">
+            <p class="ebook-note">📱 All items are ebooks — no delivery address needed.</p>
+          </div>`}
           <div class="order-field">
             <label>Phone Number</label>
             <input type="tel" id="phone" placeholder="+91 XXXXX XXXXX"/>
@@ -147,10 +171,17 @@
           <p class="panel-note">By placing your order you agree to our terms of service. Delivery within 3–7 business days.</p>
         </div>
       </div>`;
-  }
 
-  function changeQty(idx, delta) {
-    cartItems[idx].quantity = Math.max(1, (cartItems[idx].quantity || 1) + delta);
+    // store needsAddress for placeOrder to use
+    window._needsAddress = needsAddress;
+  }
+function changeQty(idx, delta) {
+    const newQty = (cartItems[idx].quantity || 1) + delta;
+    if (newQty < 1) {
+      removeItem(idx);
+      return;
+    }
+    cartItems[idx].quantity = newQty;
     renderCart();
   }
 
@@ -161,21 +192,24 @@
   }
 
   async function placeOrder() {
-    const token = localStorage.getItem('folio_token');
-    const address = document.getElementById('delivery-address').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const notes = document.getElementById('order-notes').value.trim();
-    const btn = document.getElementById('place-btn');
+    const token   = localStorage.getItem('access_token') || localStorage.getItem('folio_token');
+    const address = document.getElementById('delivery-address')?.value.trim() || '';
+    const phone   = document.getElementById('phone').value.trim();
+    const notes   = document.getElementById('order-notes').value.trim();
+    const btn     = document.getElementById('place-btn');
 
-    if (!address) { showToast('Please enter a delivery address', 'error'); return; }
+    if (window._needsAddress && !address) {
+      showToast('Please enter a delivery address for physical books', 'error');
+      return;
+    }
 
     btn.classList.add('loading'); btn.disabled = true;
 
-    const cartId = cartItems[0]?.cart_id || 1;
+    const cartId    = cartItems[0]?.cart_id || 1;
     const orderInfo = { address, phone, notes };
 
     try {
-      const res = await fetch(`${BASE_URL}/execute_order?cart_id=${cartId}`, {
+      const res = await fetch(`http://127.0.0.1:8000/execute_order?cart_id=${cartId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(orderInfo)
@@ -189,13 +223,32 @@
       btn.classList.remove('loading'); btn.disabled = false;
     }
   }
-
   function showToast(msg, type = 'success') {
     const t = document.getElementById('toast');
     t.textContent = msg; t.className = `toast ${type} show`;
     setTimeout(() => t.classList.remove('show'), 2800);
   }
+async function removeItem(idx) {
+    const token  = localStorage.getItem('access_token') || localStorage.getItem('folio_token');
+    const item   = cartItems[idx];
+    const bookId = item.book_id || item.id;
 
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/remove_from_cart?book_id=${bookId}`, {
+  method: 'POST',
+  headers: { 'Authorization': `Bearer ${token}` }
+});
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.detail || 'Failed to remove');
+      }
+      cartItems.splice(idx, 1);
+      renderCart();
+      showToast('Item removed from cart', 'success');
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
   function getMockCart() {
     return [
       { book_id: 1, title: 'The Midnight Library', author: 'Matt Haig', price: 349, quantity: 1 },

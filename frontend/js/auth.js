@@ -1,30 +1,30 @@
-/* ================================================================
-   auth.js — Login & Register page logic
-   Depends on: api.js (loaded first via <script> tag)
-================================================================ */
+
 
 'use strict';
 
-/* ── GUARD: already logged in ───────────────────────────────── */
-// If the user is already authenticated, skip the auth pages entirely.
+/* ── REDIRECT IF LOGGED IN ─────────────────────────────────── */
 if (Auth.isLoggedIn()) {
   window.location.replace('search.html');
 }
 
-/* ── HELPERS ────────────────────────────────────────────────── */
+/* ── HELPERS ───────────────────────────────────────────────── */
 function showFormError(msg) {
   const el = document.getElementById('error-msg');
   if (!el) return;
+
   el.textContent = msg;
   el.classList.add('show');
+
   document.getElementById('success-msg')?.classList.remove('show');
 }
 
 function showFormSuccess(msg) {
   const el = document.getElementById('success-msg');
   if (!el) return;
+
   el.textContent = msg;
   el.classList.add('show');
+
   document.getElementById('error-msg')?.classList.remove('show');
 }
 
@@ -33,101 +33,48 @@ function clearMessages() {
   document.getElementById('success-msg')?.classList.remove('show');
 }
 
-function setButtonLoading(btnId, loading) {
-  const btn = document.getElementById(btnId);
+function setButtonLoading(id, state) {
+  const btn = document.getElementById(id);
   if (!btn) return;
-  btn.classList.toggle('loading', loading);
-  btn.disabled = loading;
+
+  btn.disabled = state;
+  btn.classList.toggle('loading', state);
 }
 
 /* ================================================================
-   LOGIN PAGE
+   LOGIN
 ================================================================ */
 
-/**
- * Called by the Sign In button (onclick="handleLogin()")
- * and also on Enter keydown.
- */
 async function handleLogin() {
-  const email    = document.getElementById('email')?.value.trim()    || '';
-  const password = document.getElementById('password')?.value         || '';
+  const email = document.getElementById('email')?.value.trim();
+  const password = document.getElementById('password')?.value;
 
   clearMessages();
 
-  // Client-side validation
   if (!email || !password) {
-    showFormError('Please fill in both fields.');
-    return;
+    return showFormError('Please fill all fields.');
   }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    showFormError('Please enter a valid email address.');
-    return;
-  }
-
-  setButtonLoading('login-btn', true);
 
   try {
+    setButtonLoading('login-btn', true);
+
     await apiLogin(email, password);
-    showFormSuccess('Signed in! Redirecting…');
-    setTimeout(() => window.location.href = 'search.html', 900);
+
+    showFormSuccess('Login successful!');
+    setTimeout(() => {
+      window.location.href = 'search.html';
+    }, 800);
+
   } catch (err) {
-    showFormError(err.message || 'Login failed. Please try again.');
+    showFormError(err.message || 'Login failed');
   } finally {
     setButtonLoading('login-btn', false);
   }
 }
 
 /* ================================================================
-   REGISTER PAGE
+   REGISTER
 ================================================================ */
-
-/**
- * Password strength indicator.
- * Called oninput on the password field.
- */
-
-(function initYearLogic() {
-  const statusSel = document.getElementById('status');
-  const yearSel   = document.getElementById('year');
-  const yearHint  = document.getElementById('year-hint');
-  if (!statusSel || !yearSel) return;
-
-  statusSel.addEventListener('change', () => {
-    const max = statusSel.value === 'UG' ? 4 : statusSel.value === 'PG' ? 2 : 0;
-    yearSel.innerHTML = '<option value="">Select year…</option>';
-    if (yearHint) yearHint.textContent = statusSel.value === 'UG'
-      ? 'UG — 4-year programme' : statusSel.value === 'PG'
-      ? 'PG — 2-year programme' : '';
-    for (let y = 1; y <= max; y++) {
-      const opt = document.createElement('option');
-      opt.value = y;
-      opt.textContent = `Year ${y}`;
-      yearSel.appendChild(opt);
-    }
-  });
-})();
-
-function checkStrength(val) {
-  const bar = document.getElementById('strength-bar');
-  if (!bar) return;
-
-  let score = 0;
-  if (val.length >= 6)              score++;
-  if (val.length >= 10)             score++;
-  if (/[A-Z]/.test(val))           score++;
-  if (/[0-9]/.test(val))           score++;
-  if (/[^A-Za-z0-9]/.test(val))    score++;
-
-  const pct    = score * 20;
-  const colors = ['#c0392b', '#e67e22', '#c9a84c', '#2d4a3e', '#27ae60'];
-  bar.style.width      = `${pct}%`;
-  bar.style.background = colors[score - 1] || 'transparent';
-}
-
-/**
- * Called by the Create Account button (onclick="handleRegister()")
- * and also on Enter keydown.
- */
 async function handleRegister() {
   const email     = document.getElementById('email')?.value.trim()      || '';
   const password  = document.getElementById('password')?.value           || '';
@@ -193,11 +140,18 @@ if (yearOfStudent) studentInfo.year_of_student = yearOfStudent;
     setButtonLoading('register-btn', false);
   }
 }
+/* ================================================================
+   ENTER KEY SUPPORT
+================================================================ */
 
-/* ── KEYBOARD SUPPORT ───────────────────────────────────────── */
-document.addEventListener('keydown', e => {
+document.addEventListener('keydown', (e) => {
   if (e.key !== 'Enter') return;
-  // Detect which page we're on by which button exists
-  if (document.getElementById('login-btn'))    handleLogin();
-  if (document.getElementById('register-btn')) handleRegister();
+
+  if (document.getElementById('login-btn')) {
+    handleLogin();
+  }
+
+  if (document.getElementById('register-btn')) {
+    handleRegister();
+  }
 });

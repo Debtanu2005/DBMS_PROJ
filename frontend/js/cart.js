@@ -102,11 +102,16 @@ function renderCart() {
       </div>
 
       <div class="order-form">
-        <div class="order-field">
-          <label for="delivery-address">Delivery Address</label>
-          <textarea id="delivery-address" rows="3"
-            placeholder="Enter your full delivery address…"></textarea>
-        </div>
+       ${needsAddress ? `
+<div class="order-field">
+  <label for="delivery-address">Delivery Address</label>
+  <textarea id="delivery-address" rows="3"
+    placeholder="Enter your full delivery address…"></textarea>
+  <span class="field-hint">Required for physical books</span>
+</div>` : `
+<div class="order-field">
+  <p class="ebook-note">📱 All items are ebooks — no delivery address needed.</p>
+</div>`}
         <div class="order-field">
           <label for="phone">Phone Number</label>
           <input type="tel" id="phone" placeholder="+91 XXXXX XXXXX"/>
@@ -135,6 +140,9 @@ function cartItemHTML(item, idx) {
   const title  = escHtml(item.title  || item.book_title  || 'Book');
   const author = escHtml(item.author || item.book_author || '');
   const price  = item.price ? `<div class="item-price">₹${item.price}</div>` : '';
+const badge  = item.purchase_option
+  ? `<span class="item-badge ${item.purchase_option}">${item.purchase_option.toUpperCase()}</span>` : '';
+const meta   = `<span class="item-meta">${item.format || ''} · ${item.type || ''}</span>`;
   const qty    = item.quantity || 1;
   const delay  = `${idx * 0.06}s`;
 
@@ -145,6 +153,8 @@ function cartItemHTML(item, idx) {
         <div class="item-title">${title}</div>
         <div class="item-author">${author}</div>
         ${price}
+        ${badge}
+        ${meta}
       </div>
       <div class="item-controls">
         <div class="qty-wrap">
@@ -177,10 +187,10 @@ async function handlePlaceOrder() {
   const notes   = document.getElementById('order-notes')?.value.trim()      || '';
   const btn     = document.getElementById('place-btn');
 
-  if (!address) {
-    showToast('Please enter a delivery address', 'err');
-    return;
-  }
+if (needsAddress && !address) {
+  showToast('Please enter a delivery address for physical books', 'err');
+  return;
+}
 
   btn.classList.add('loading');
   btn.disabled = true;

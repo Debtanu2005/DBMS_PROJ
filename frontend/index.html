@@ -16,6 +16,7 @@
     <li><a href="cart.html">Cart</a></li>
     <li><a href="orders.html">Orders</a></li>
     <li><a href="addbook.html">Add Book</a></li>
+    <li><a href="support.html">Support</a></li>
   </ul>
   <a class="nav-cta" href="login.html" id="nav-auth-btn">Sign In</a>
 </nav>
@@ -92,9 +93,9 @@
   <p class="footer-copy">© 2026 Folio · All rights reserved</p>
 </footer>
 
-<script>
+<!-- <script>
   function updateNav() {
-    const token = localStorage.getItem('folio_token');
+    const token = localStorage.getItem('access_token') || localStorage.getItem('folio_token');
     const btn = document.getElementById('nav-auth-btn');
     if (token) {
       btn.textContent = 'Sign Out'; btn.href = '#';
@@ -107,7 +108,11 @@
     window.location.href = q ? `search.html?q=${encodeURIComponent(q)}` : 'search.html';
   }
   document.getElementById('hero-search').addEventListener('keydown', e => { if (e.key==='Enter') goSearch(); });
-</script>
+</script> -->
 <script type="module" src="./js/navbar.js"></script>
+<script src="js/api.js"></script>
+<script>
+  initNav();
+</script>
 </body>
 </html>

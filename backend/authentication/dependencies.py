@@ -1,24 +1,29 @@
-from fastapi import Header, HTTPException
+from fastapi import Request, HTTPException, status
 from authentication.jwt import verify_token
 
 
-def get_current_user(authorization: str = Header(...)):
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Invalid authorization header")
-
-    token = authorization.split(" ")[1]
+def get_current_user(request: Request):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid Authorization header"
+        )
+    token = auth_header.split(" ")[1]
     payload = verify_token(token)
-
     if not payload:
-        raise HTTPException(status_code=401, detail="Token expired or invalid")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expired or invalid"
+        )
+    return payload
 
-    return payload  # contains user_id, email, role
 
-
-def student_only(authorization: str = Header(...)):
-    user = get_current_user(authorization)
-
+def student_only(request: Request):
+    user = get_current_user(request)
     if user.get("role") != "student":
-        raise HTTPException(status_code=403, detail="Students only")
-
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Students only"
+        )
     return user

@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="css/main.css"/>
 <link rel="stylesheet" href="css/pages.css"/>
-<link rel="stylesheet" href="css/search.css"/>
+<!-- <link rel="stylesheet" href="css/search.css"/> -->
 </head>
 <body>
  
@@ -19,6 +19,8 @@
     <li><a href="cart.html">Cart</a></li>
     <li><a href="orders.html">Orders</a></li>
     <li><a href="addbook.html">Add Book</a></li>
+
+    <li><a href="support.html">Support</a></li>
   </ul>
   <div class="nav-right">
     <a href="cart.html" class="nav-cart-btn">
@@ -115,10 +117,321 @@
   <div class="footer-logo">Fo<span>lio</span></div>
   <p class="footer-copy">© 2026 Folio</p>
 </footer>
+
  
- 
-<script src="js/api.js"></script>
+<!-- <script src="js/api.js"></script>
 <script src="js/search.js"></script>
-<script src="./js/navbar.js"></script>
+<script src="./js/navbar.js"></script> -->
+
+
+<script>
+const BACKEND = 'http://127.0.0.1:8000';
+
+const SPINE_COLORS = [
+  '#b85c38','#4a6fa5','#2d4a3e','#7a4f7d',
+  '#5c4a3a','#3d6b5e','#8c3b2a','#4a7c8e',
+  '#6b5a4e','#c47b3a','#3a5c7a','#856a44',
+];
+
+let state = {
+  query: '', type: 'all', sort: '', view: 'grid',
+  books: [], filtered: [],
+};
+
+/* ── NAV ── */
+function initNav() {
+  const token = localStorage.getItem('access_token') || localStorage.getItem('folio_token');
+  const btn = document.getElementById('nav-auth-btn');
+  if (token) {
+    btn.textContent = 'Sign Out';
+    btn.href = '#';
+    btn.onclick = e => {
+      e.preventDefault();
+      localStorage.removeItem('folio_token');
+      localStorage.removeItem('access_token');
+      location.reload();
+    };
+  }
+}
+
+/* ── SEARCH TYPE ── */
+function setType(t) {
+  state.type = t;
+  ['all','author','title'].forEach(id =>
+    document.getElementById('type-' + id).classList.toggle('active', id === t)
+  );
+  const hints = {
+    all:    'Type a title, author name, or keyword…',
+    author: 'Enter an author name…',
+    title:  'Enter a book title…'
+  };
+  document.getElementById('search-input').placeholder = hints[t];
+}
+
+/* ── VIEW TOGGLE ── */
+function setView(v) {
+  state.view = v;
+  document.getElementById('btn-grid').classList.toggle('active', v === 'grid');
+  document.getElementById('btn-list').classList.toggle('active', v === 'list');
+  document.getElementById('books-grid').classList.toggle('is-list', v === 'list');
+  renderBooks(state.filtered);
+}
+
+/* ── SORT ── */
+function sortBooks() {
+  const val = document.getElementById('sort-select').value;
+  state.sort = val;
+  const books = [...state.books];
+  if (val === 'title_asc')  books.sort((a,b) => (a.title||'').localeCompare(b.title||''));
+  if (val === 'title_desc') books.sort((a,b) => (b.title||'').localeCompare(a.title||''));
+  if (val === 'author_asc') books.sort((a,b) => (a.author||'').localeCompare(b.author||''));
+  if (val === 'price_asc')  books.sort((a,b) => (a.price||0) - (b.price||0));
+  if (val === 'price_desc') books.sort((a,b) => (b.price||0) - (a.price||0));
+  state.filtered = books;
+  renderBooks(state.filtered);
+}
+
+/* ── CLEAR FILTERS ── */
+function clearFilters() {
+  document.querySelectorAll('.check-item input').forEach(c => c.checked = false);
+  document.getElementById('sort-select').value = '';
+  state.sort = '';
+  state.filtered = [...state.books];
+  renderBooks(state.filtered);
+}
+
+/* ── LOAD ALL BOOKS on page open ── */
+async function loadAllBooks() {
+  showSkeletons();
+  updateResultsInfo('Loading…');
+  try {
+    const token = localStorage.getItem('access_token') || localStorage.getItem('folio_token');
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(`${BACKEND}/all_books`, { headers });
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+
+    const data = await res.json();
+    // /all_books returns a plain array
+    const books = Array.isArray(data) ? data : [];
+
+    state.books    = books;
+    state.filtered = books;
+    sortBooks();
+    renderBooks(state.filtered);
+  } catch (err) {
+    updateResultsInfo('Could not reach server — check backend is running');
+    document.getElementById('books-grid').innerHTML = `
+      <div class="state-box">
+        <div class="state-icon">⚠️</div>
+        <div class="state-title">Backend unreachable</div>
+        <div class="state-sub">${err.message}</div>
+      </div>`;
+  }
+}
+
+/* ── SEARCH ── */
+async function doSearch() {
+  const query = document.getElementById('search-input').value.trim();
+  state.query = query;
+  showSkeletons();
+  updateResultsInfo('Searching…');
+
+  if (!query) { loadAllBooks(); return; }
+
+  try {
+    let url;
+    if (state.type === 'author') url = `${BACKEND}/search_books?author=${encodeURIComponent(query)}`;
+    else if (state.type === 'title') url = `${BACKEND}/search_books?name=${encodeURIComponent(query)}`;
+    else url = `${BACKEND}/search_books?q=${encodeURIComponent(query)}`;
+
+    const token = localStorage.getItem('access_token') || localStorage.getItem('folio_token');
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(url, { headers });
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+
+    const data = await res.json();
+    // router now returns {"results": [...]} directly
+    const books = Array.isArray(data)         ? data
+                : Array.isArray(data.results) ? data.results
+                : Array.isArray(data.books)   ? data.books
+                : [];
+
+    state.books    = books;
+    state.filtered = books;
+    sortBooks();
+    renderBooks(state.filtered);
+  } catch (err) {
+    updateResultsInfo('Search failed');
+    document.getElementById('books-grid').innerHTML = `
+      <div class="state-box">
+        <div class="state-icon">⚠️</div>
+        <div class="state-title">Search failed</div>
+        <div class="state-sub">${err.message}</div>
+      </div>`;
+  }
+}
+
+/* ── RENDER ── */
+function renderBooks(books) {
+  const grid = document.getElementById('books-grid');
+  grid.className = state.view === 'list' ? 'is-list' : '';
+
+  updateResultsInfo(
+    books.length === 0
+      ? 'No results'
+      : `<strong>${books.length}</strong> book${books.length !== 1 ? 's' : ''}${state.query ? ` for "<em>${escHtml(state.query)}</em>"` : ''}`
+  );
+
+  if (!books.length) {
+    grid.innerHTML = `
+      <div class="state-box">
+        <div class="state-icon">📚</div>
+        <div class="state-title">${state.query ? `Nothing found for "${escHtml(state.query)}"` : 'No books available'}</div>
+        <div class="state-sub">Try a different search term</div>
+      </div>`;
+    return;
+  }
+  grid.innerHTML = books.map((book, i) => bookCardHTML(book, i)).join('');
+}
+
+function bookCardHTML(book, idx) {
+  const color  = SPINE_COLORS[idx % SPINE_COLORS.length];
+  const title  = escHtml(book.title  || 'Untitled');
+  const author = escHtml(book.author || book.publisher || 'Unknown');
+  const price  = book.price ? `<div class="book-price">₹${book.price}</div>` : '';
+  const id     = book.book_id || book.id || idx;
+
+  // Spine badges (grid view — on cover)
+  const spineBadges = [
+    book.type            ? `<span class="spine-badge ${book.type}">${book.type}</span>`                       : '',
+    book.purchase_option ? `<span class="spine-badge ${book.purchase_option}">${book.purchase_option}</span>` : '',
+    book.format          ? `<span class="spine-badge format">${book.format}</span>`                           : '',
+  ].filter(Boolean).join('');
+
+  // Inline badges (list view — beside button)
+  const inlineBadges = [
+    book.type            ? `<span class="inline-badge ${book.type}">${book.type}</span>`                       : '',
+    book.purchase_option ? `<span class="inline-badge ${book.purchase_option}">${book.purchase_option}</span>` : '',
+    book.format          ? `<span class="inline-badge format">${book.format}</span>`                           : '',
+  ].filter(Boolean).join('');
+
+  return `
+    <div class="book-card" style="animation-delay:${idx*0.035}s">
+      <div class="book-spine" style="background:${color}">
+        <span class="book-spine-text">${title}</span>
+        ${spineBadges ? `<div class="spine-badges">${spineBadges}</div>` : ''}
+      </div>
+      <div class="book-body">
+        <div class="book-title">${title}</div>
+        <div class="book-author">${author}</div>
+        ${price}
+      </div>
+      <div class="book-footer">
+        <div class="inline-badges">${inlineBadges}</div>
+        <button class="add-cart-btn" id="add-btn-${id}"
+          data-id="${id}" data-title="${title}"
+          onclick="addToCart(this)">Add to Cart</button>
+      </div>
+    </div>`;
+}
+
+/* ── ADD TO CART ── */
+async function addToCart(btn) {
+  const token = localStorage.getItem('access_token') || localStorage.getItem('folio_token');
+  if (!token) {
+    toast('Sign in to add books to your cart', 'err');
+    setTimeout(() => window.location.href = 'login.html', 1100);
+    return;
+  }
+  const bookId = btn.dataset.id;
+  const title  = btn.dataset.title;
+  btn.disabled = true;
+  btn.textContent = '…';
+
+  try {
+    const res = await fetch(
+      `${BACKEND}/add_to_cart?book_id=${encodeURIComponent(bookId)}&quantity=1`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      throw new Error(d.detail || `Error ${res.status}`);
+    }
+    btn.textContent = '✓ Added';
+    btn.classList.add('is-added');
+    toast(`"${title}" added to cart`, 'ok');
+    setTimeout(() => {
+      btn.textContent = 'Add to Cart';
+      btn.classList.remove('is-added');
+      btn.disabled = false;
+    }, 2000);
+  } catch (err) {
+    btn.textContent = 'Add to Cart';
+    btn.disabled = false;
+    toast(err.message, 'err');
+  }
+}
+
+/* ── HELPERS ── */
+function showSkeletons() {
+  const grid = document.getElementById('books-grid');
+  grid.className = '';
+  grid.innerHTML = Array.from({ length: 8 }, (_, i) => `
+    <div class="skel" style="animation-delay:${i*0.04}s">
+      <div class="skel-cover"></div>
+      <div class="skel-line"></div>
+      <div class="skel-line half"></div>
+    </div>`).join('');
+}
+
+function updateResultsInfo(html) {
+  document.getElementById('results-info').innerHTML = html;
+}
+
+let toastTimer;
+function toast(msg, type = 'ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+/* ── INIT ── */
+initNav();
+
+const urlParams = new URLSearchParams(window.location.search);
+const preQuery  = urlParams.get('q') || '';
+if (preQuery) document.getElementById('search-input').value = preQuery;
+
+window.addEventListener('DOMContentLoaded', () => {
+  preQuery ? doSearch() : loadAllBooks();
+});
+
+document.getElementById('search-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
+</script>
+<!-- 
+<script src="js/api.js"></script>
+<script src="js/search.js"></script> -->
+
 </body>
 </html>

@@ -46,4 +46,3 @@ def disconnect_db()->psycopg2.extensions.connection:
 
 # connect_db()
 # disconnect_db()
-

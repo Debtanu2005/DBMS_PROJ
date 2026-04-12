@@ -139,6 +139,50 @@
   </div>
 </div>
 
+<script>
+  function checkStrength(password) {
+  const bar = document.getElementById("strength-bar");
+
+  if (!bar) return;
+
+  let strength = 0;
+
+  if (password.length >= 6) strength++;
+  if (password.match(/[A-Z]/)) strength++;
+  if (password.match(/[0-9]/)) strength++;
+  if (password.match(/[^A-Za-z0-9]/)) strength++;
+
+  // Reset
+  bar.style.width = "0%";
+
+  if (strength === 1) {
+    bar.style.width = "25%";
+    bar.style.background = "red";
+  } else if (strength === 2) {
+    bar.style.width = "50%";
+    bar.style.background = "orange";
+  } else if (strength === 3) {
+    bar.style.width = "75%";
+    bar.style.background = "gold";
+  } else if (strength >= 4) {
+    bar.style.width = "100%";
+    bar.style.background = "green";
+  }
+}
+
+  const yearSelect = document.getElementById('year');
+
+  const startYear = 1;
+  const endYear = 3;
+
+  for (let year = startYear; year <= endYear; year++) {
+    const option = document.createElement('option');
+    option.value = year;
+    option.textContent = year;
+    yearSelect.appendChild(option);
+  }
+</script>
+
 <script src="js/api.js"></script>
 <script src="js/auth.js"></script>
 </body>

@@ -102,32 +102,21 @@ async function doSearch() {
   setResultsInfo('Searching…');
 
   try {
-    const books    = await apiSearchBooks(query, state.type);
+    const books = await apiSearchBooks(query, state.type);
+
+    console.log("BOOKS AFTER API:", books); // 🔥 ADD THIS
+
     state.books    = books;
     state.filtered = books;
-    sortBooks();   // apply current sort if one is selected
+
+    console.log("STATE FILTERED:", state.filtered); // 🔥 ADD THIS
+
+    sortBooks();
+
   } catch (err) {
-    // Only fall back to mock data when the backend is truly unreachable (network error).
-    // Do NOT mask real HTTP errors like 401/422 — show them instead.
-    const isNetworkError = err.message.includes('Failed to fetch') ||
-                           err.message.includes('NetworkError') ||
-                           err.message.includes('502');
-    if (isNetworkError) {
-      console.warn('Backend unreachable — showing mock data:', err.message);
-      const books    = getMockBooks(query, state.type);
-      state.books    = books;
-      state.filtered = books;
-      renderBooks(state.filtered);
-    } else {
-      // Real backend error — show it so we can debug
-      state.books    = [];
-      state.filtered = [];
-      setResultsInfo(`Error: ${escHtml(err.message)}`);
-      renderBooks([]);
-    }
+    console.error(err);
   }
 }
-
 /* ── RENDER BOOKS ───────────────────────────────────────────── */
 function renderBooks(books) {
   const grid = document.getElementById('books-grid');
@@ -138,6 +127,7 @@ function renderBooks(books) {
 
   // Results info bar
   const count = books.length;
+  console.log("RENDER INPUT:", books);
   setResultsInfo(
     count === 0
       ? 'No results'
@@ -257,37 +247,22 @@ if (_urlQ) {
   state.query = _urlQ;
 }
 
-
-// Enter key triggers search
-document.getElementById('search-input')
-  ?.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
-
-/* ================================================================*/
+// ✅ Only ONE place where doSearch and listeners are set up
 document.addEventListener("DOMContentLoaded", () => {
-
-  // 🔍 Run search on page load
   doSearch();
 
-  // ⌨️ Enter key triggers search
   const input = document.getElementById('search-input');
   if (input) {
     input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        doSearch();
-      }
+      if (e.key === 'Enter') doSearch();
     });
   }
 
-  // 🔑 Show admin link
-  
   const role = localStorage.getItem("role");
   const link = document.getElementById("addBookLink");
-
-  console.log("ROLE:", role);
-  console.log("LINK:", link);
-
   if (role === "admin" && link) {
-    link.style.display = "inline"; // better than block for navbar
+    link.style.display = "inline";
+  } else if (link) {
+    link.style.display = "none";
   }
-
 });

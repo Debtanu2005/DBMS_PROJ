@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
 <title>Folio — My Orders</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
 <style>
   :root {
@@ -122,7 +124,7 @@
     <li><a href="search.html">Browse</a></li>
     <li><a href="cart.html">Cart</a></li>
     <li><a href="orders.html" class="active">Orders</a></li>
-    <li><a href="addbook.html">Add Book</a></li>
+    <li><a href="support.html">Support</a></li>
   </ul>
   <a href="login.html" class="nav-auth" id="nav-auth-btn">Sign In</a>
 </nav>
@@ -153,7 +155,7 @@
   let activeFilter = 'all';
 
   function updateNav() {
-    const token = localStorage.getItem('folio_token');
+    const token = localStorage.getItem('access_token') || localStorage.getItem('folio_token');
     const btn = document.getElementById('nav-auth-btn');
     if (token) {
       btn.textContent = 'Sign Out'; btn.href = '#';
@@ -163,7 +165,7 @@
   updateNav();
 
   async function loadOrders() {
-    const token = localStorage.getItem('folio_token');
+    const token = localStorage.getItem('access_token') || localStorage.getItem('folio_token');
     const content = document.getElementById('orders-content');
 
     if (!token) {
@@ -197,7 +199,7 @@
     const content = document.getElementById('orders-content');
     const filtered = activeFilter === 'all' ? allOrders : allOrders.filter(o => (o.status || '').toLowerCase() === activeFilter);
 
-    const totalSpent = allOrders.reduce((s, o) => s + (o.total || o.amount || 0), 0);
+    const totalSpent = allOrders.reduce((s, o) => s + (o.order_total ?? o.total ?? 0), 0);
     const delivered = allOrders.filter(o => (o.status || '').toLowerCase() === 'delivered').length;
 
     if (allOrders.length === 0) {
@@ -236,7 +238,7 @@
     const id = order.order_id || order.id || (idx + 1001);
     const status = order.status || 'processing';
     const statusClass = `status-${status.toLowerCase()}`;
-    const amount = order.total || order.amount || 0;
+    const amount = order.order_total ?? order.total ?? 0;
     const date = order.created_at || order.date || new Date().toISOString();
     const formattedDate = new Date(date).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
     const items = order.items || order.books || [];
@@ -300,13 +302,13 @@
       </div>`).join('');
   }
 
-  // function getMockOrders() {
-  //   return [
-  //     { order_id: 1001, status: 'delivered', total: 748, date: '2026-03-15T10:30:00', address: '42 MG Road, Bhubaneswar, Odisha 751001', items: [{ title: 'The Midnight Library', author: 'Matt Haig', quantity: 1, price: 349 }, { title: 'Atomic Habits', author: 'James Clear', quantity: 1, price: 399 }] },
-  //     { order_id: 1002, status: 'shipped', total: 499, date: '2026-04-01T14:00:00', address: '42 MG Road, Bhubaneswar, Odisha 751001', items: [{ title: 'Sapiens', author: 'Yuval Noah Harari', quantity: 1, price: 499 }] },
-  //     { order_id: 1003, status: 'processing', total: 249, date: '2026-04-07T09:00:00', address: '42 MG Road, Bhubaneswar, Odisha 751001', items: [{ title: '1984', author: 'George Orwell', quantity: 1, price: 249 }] },
-  //   ];
-  // }
+  function getMockOrders() {
+    return [
+      { order_id: 1001, status: 'delivered', total: 748, date: '2026-03-15T10:30:00', address: '42 MG Road, Bhubaneswar, Odisha 751001', items: [{ title: 'The Midnight Library', author: 'Matt Haig', quantity: 1, price: 349 }, { title: 'Atomic Habits', author: 'James Clear', quantity: 1, price: 399 }] },
+      { order_id: 1002, status: 'shipped', total: 499, date: '2026-04-01T14:00:00', address: '42 MG Road, Bhubaneswar, Odisha 751001', items: [{ title: 'Sapiens', author: 'Yuval Noah Harari', quantity: 1, price: 499 }] },
+      { order_id: 1003, status: 'processing', total: 249, date: '2026-04-07T09:00:00', address: '42 MG Road, Bhubaneswar, Odisha 751001', items: [{ title: '1984', author: 'George Orwell', quantity: 1, price: 249 }] },
+    ];
+  }
 
   loadOrders();
 </script>
