@@ -49,7 +49,7 @@ body.landing .nav-links a:hover { color: var(--ink); }
 
 .hero-sub {
   margin-top: 2rem;
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   font-weight: 300;
   color: var(--muted);
   line-height: 1.6;

@@ -12,7 +12,7 @@
   --cream:     #ede8dc;
   --rust:      #b85c38;
   --gold:      #c9a84c;
-  --muted:     #7a7468;
+  --muted:     #535048;
   --green:     #2d4a3e;
   --error:     #c0392b;
 
@@ -29,7 +29,7 @@
   --space-sm:  0.8rem;
   --space-md:  1.6rem;
   --space-lg:  3rem;
-  --space-xl:  5rem;
+  --space-xl:  6rem;
   --space-2xl: 7rem;
 
   /* Transitions */
@@ -203,7 +203,7 @@ nav.fixed {
 .hero-eyebrow,
 .form-eyebrow {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 1.2rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--rust);

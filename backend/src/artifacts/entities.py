@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Literal
 
 
 @dataclass
@@ -12,7 +12,7 @@ class student:
     major: str
     status: str
     year_of_student: int
-    role: str
+    role: str ="student"
     student_id: Optional[int] = None 
 
 @dataclass
@@ -66,5 +66,9 @@ class book_new:
     language: str
     edition : int
     category: str
-    course_id: int
-    type: str
+
+@dataclass
+class TicketCreate:
+    category: Literal['profile', 'products', 'cart', 'orders', 'other']
+    title: str
+    description: str
