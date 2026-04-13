@@ -394,7 +394,7 @@
   background: none;
   border: none;
   font-family: var(--font-mono);
-  font-size: 0.9rem;
+  font-size: 1.7rem;
   cursor: pointer;
   color: var(--ink);
   transition: background var(--t-base);
@@ -404,7 +404,7 @@
   width: 36px;
   text-align: center;
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 1.8rem;
   border: none;
   background: none;
   outline: none;
